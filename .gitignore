@@ -1,0 +1,4 @@
+/tsec
+*.pyc
+/results
+*.png
