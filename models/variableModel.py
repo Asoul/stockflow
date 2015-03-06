@@ -50,30 +50,21 @@ class variableModel():
             self.buyDay = 0
 
     def predict(self):        
-        if  (
-                (
-                    (
-                    # 高於月線 ma20
-                    self.value_series[-1] > self.value_ma[20]
-                    # 低於季線 ma60
-                    and self.value_series[-1] < self.value_ma[60]
-                    )
-                )
-            and not self.haveStockState):
-                self.changeStateFlag = True
-                self.buyValue = self.value_series[-1]
-                return 1
-        elif (
-
-                (
-                    # 低於月線 ma20
-                    self.value_series[-1] < self.value_ma[20]
-                    # 停損
-                    or self.value_series[-1] < self.buyValue * 0.9
-                )
-            and self.haveStockState):
-            self.changeStateFlag = True
-            return -1
+        if not self.haveStockState and(# 沒有持有的情況
+            # 高於月線 ma20
+            self.value_series[-1] > self.value_ma[20]
+            # 低於季線 ma60
+            and self.value_series[-1] < self.value_ma[60]
+        ):
+            return [1, self.value_series[-1]]
+            
+        elif self.haveStockState and (# 有持有的情框
+            # 低於月線 ma20
+            self.value_series[-1] < self.value_ma[20]
+            # 停損
+            or self.value_series[-1] < self.buyValue * 0.9
+        ):
+            return [-1, self.value_series[-1]]
         else:
-            return 0
+            return [0, 0]
         

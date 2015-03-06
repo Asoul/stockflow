@@ -2,45 +2,48 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from ctrls import *
 from datetime import date
+from ctrls.Tester import Tester
 from models.exampleModel import exampleModel
 
 def main():
 
-    drawer = CandleDrawer()
+    numbers = [ line.strip() for line in open('stocknumber.csv', 'rb') ]
 
-    number_list = [ line.strip() for line in open('stocknumber.csv', 'rb') ]
+    tester = Tester(numbers, exampleModel)
 
-    this_year = str(date.today().year-1911)
+    tester.train(noLog = False, noRecord = True, dateFrom = date(2015,1,1))
 
-    for number in number_list:
+    for number in tester.predict(predThr = 0, roiThr = 0):
+        tester.drawCandle(number)
 
-        model = exampleModel()
-        reader = Reader(number)
+    # for number in number_list:
 
-        trader = Trader(model.infos, number)#參數是Model Description 和 number
-        last_row = None
+    #     model = exampleModel()
+    #     reader = Reader(number)
 
-        while True:
+    #     trader = Trader(model.infos, number)#參數是Model Description 和 number
+    #     last_row = None
+
+    #     while True:
             
-            row = reader.getInput()
-            if row == None: break
-            last_row = row
+    #         row = reader.getInput()
+    #         if row == None: break
+    #         last_row = row
 
-            model.update(row)
-            prediction = model.predict()
+    #         model.update(row)
+    #         prediction = model.predict()
             
-            data_year = row[0].split('/')[0]
-            if data_year == this_year:
-                trade = trader.do(float(row[6]), prediction)
+    #         data_year = row[0].split('/')[0]
+    #         if data_year == this_year:
+    #             trade = trader.do(float(row[6]), prediction)
 
-        result = trader.analysis()
+    #     result = trader.analysis()
 
         # 預測為要買，而且今年為止 ROI 為正
-        if prediction > 0:
-            print last_row[0], number, ' @ ', float(last_row[6]), '該買囉, 今年累計：', result["ROI"], '%'
-            drawer.draw(number)
+        # if prediction > 0:
+        #     print last_row[0], number, ' @ ', float(last_row[6]), '該買囉, 今年累計：', result["ROI"], '%'
+        #     drawer.draw(number)
 
 if __name__ == '__main__':
     sys.exit(main())

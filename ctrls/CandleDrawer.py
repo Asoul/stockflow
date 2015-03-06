@@ -12,8 +12,9 @@ from matplotlib.finance import candlestick_ohlc
 
 class CandleDrawer():
 
-    def draw(self, stock_number, tmprow=[]):
-        csvreader = csv.reader(open(join(TSEC_DATA_PATH, stock_number+'.csv'), 'rb'), delimiter=',')
+    def draw(self, stock_number, today_tmp_data=[]):
+        csvfile = open(TSEC_DATA_PATH+stock_number+'.csv', 'rb')
+        csvreader = csv.reader(csvfile, delimiter=',')
 
         # Series
         value_series = []
@@ -35,7 +36,8 @@ class CandleDrawer():
         rows = []
         for row in csvreader:
             rows.append(row)
-        rows.append(tmprow)
+        if len(today_tmp_data) == 9:
+            rows.append(today_tmp_data)
 
         count = 0
         for row in rows:

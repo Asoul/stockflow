@@ -82,6 +82,8 @@ traderRecorder.record(trader.analysis()) # 把分析記錄下來
 5. path 改一致尾巴沒有 /
 6. '104' -> this_year
 7. 把每個 model 標頭的註解要改
+8. drawSimple, drawMA
+9. Tester 分為有 variable 和沒有 variable 的，不然會很亂
 
 ## 控制流程局限性
 

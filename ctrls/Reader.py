@@ -18,7 +18,9 @@ class Reader():
         try:
             while True:
                 row = self.csvreader.next()
-                if row[3] == '--' or row[4] == '--' or row[5] == '--' or row[6] == '--':
+                if len(row) != 9:
+                    raise Exception("Data Error")
+                elif row[3] == '--' or row[4] == '--' or row[5] == '--' or row[6] == '--':
                     continue
                 elif float(row[6]) == 0:
                     continue
@@ -27,4 +29,7 @@ class Reader():
                 else:
                     return row
         except StopIteration:
+            return None
+        except Exception as e:
+            print e
             return None

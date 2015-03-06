@@ -9,12 +9,9 @@ from models.exampleModel import exampleModel
 
 def main():
     
-    numbers = ['1314']# 股票編號
-
-    tester = Tester(numbers, exampleModel)
-
-    tester.train(noLog = False, noRecord = True)
-
+    numbers = ['1101']# 股票編號
+    tester = Tester(numbers, exampleModel)# 使用測試元件
+    tester.train()# 模擬
 
 if __name__ == '__main__':
     sys.exit(main())
