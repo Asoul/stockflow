@@ -7,12 +7,16 @@ TSEC_DATA_PATH = 'tsec/data/'
 # 交易費率
 STOCK_FEE = 0.001425
 STOCK_TAX = 0.003
+STOCK_MIN_FEE = 20
 TRADER_INIT_MONEY = 100000000
 
 # 繪圖設定
 FIGURE_WIDTH = 16
 FIGURE_HEIGHT = 9
 FIGURE_DPI = 300
+
+# 輸出位置
+RESULT_PATH = 'results'
 
 # 測試結果 csv 輸出位置
 STOCK_RESULT_PATH = 'results/stock'

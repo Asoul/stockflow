@@ -84,6 +84,9 @@ traderRecorder.record(trader.analysis()) # 把分析記錄下來
 7. 把每個 model 標頭的註解要改
 8. drawSimple, drawMA
 9. Tester 分為有 variable 和沒有 variable 的，不然會很亂
+10. 把 tsrtc 接上
+11. range to xrange
+12. path 那邊要改成都可以改的  RESULT ..
 
 ## 控制流程局限性
 

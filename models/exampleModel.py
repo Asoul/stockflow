@@ -48,7 +48,18 @@ class exampleModel():
         else: self.buyDay = 0
 
     def predict(self):
-        if len(self.value_series) == 0: return [0, 0]
+        '''
+        讓 model 預測下一步應該要怎麼做，模擬下單的過程，會要回傳一個 dictionary，包含：
+            Act: Buy, Sell or Nothing
+            Value: 要下單的價格
+            Volume: 要下單的量
+        '''
+        # 做交易
+        # pred[0] >0 是買，<0 是賣，=0是不動作
+        # 1 是有多少錢買多少，-1 是有多少股票賣多少，0.5 是有多少錢買一半... 依此類推
+        # pred[1] 是要買或賣的價格，今天要有在這個價格內才會交易成功
+        if len(self.value_series) == 0:
+            return {"Act": "Nothing", "Value": 0, "Volume": 0}
         elif self.haveStock == 0 and(# 沒有持有的情況
 
             # 高於月線 ma20
@@ -57,7 +68,7 @@ class exampleModel():
             and self.value_series[-1] < self.value_ma[60]
 
         ):
-            return [1, 0]
+            return {"Act": "Buy", "Value": 0, "Volume": 0}
 
         elif self.haveStock > 0 and (# 有持有的情框
 
@@ -67,7 +78,7 @@ class exampleModel():
             or self.value_series[-1] < self.buyValue * 0.9
 
         ):
-            return [-1, 0]
+            return {"Act": "Sell", "Value": 0, "Volume": 0}
         else:
-            return [0, 0]
+            return {"Act": "Nothing", "Value": 0, "Volume": 0}
         

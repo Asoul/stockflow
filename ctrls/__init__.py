@@ -11,14 +11,8 @@ from BenchMarkRecorder import BenchMarkRecorder
 import os
 from os.path import isdir
 # create default folders
-result_folders = [
-    STOCK_FIGURE_PATH,
-    MODEL_FIGURE_PATH,
-    MODEL_RESULT_PATH,
-    STOCK_RESULT_PATH
-]
-
-for folder in result_folders:
-    if not isdir(folder):
-        os.mkdir(folder)
-
+if not isdir(RESULT_PATH): os.mkdir(RESULT_PATH)
+if not isdir(STOCK_FIGURE_PATH): os.mkdir(STOCK_FIGURE_PATH)
+if not isdir(MODEL_FIGURE_PATH): os.mkdir(MODEL_FIGURE_PATH)
+if not isdir(MODEL_RESULT_PATH): os.mkdir(MODEL_RESULT_PATH)
+if not isdir(STOCK_RESULT_PATH): os.mkdir(STOCK_RESULT_PATH)

@@ -11,7 +11,7 @@ from models.exampleModel import exampleModel
 
 number_list = [ line.strip() for line in open('stocknumber.csv', 'rb') ]
 
-for test_year in range(BENCHMARK_YEAR_START, date.today().year-1911):
+for test_year in xrange(BENCHMARK_YEAR_START, date.today().year-1911):
 
     variables = exampleModel().infos["Recommend Variables"]
 

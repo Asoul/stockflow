@@ -75,6 +75,8 @@ class CandleDrawer():
         axarr[0].plot(x_axis[-CANDLE_FIG_LENGTH:], bool_up_series[-CANDLE_FIG_LENGTH:], c='#ff0000', ls='-', lw=default_line_width)
         axarr[0].plot(x_axis[-CANDLE_FIG_LENGTH:], value_ma[20][-CANDLE_FIG_LENGTH:], c='#00ff00', ls='-', lw=default_line_width)
         axarr[0].plot(x_axis[-CANDLE_FIG_LENGTH:], bool_down_series[-CANDLE_FIG_LENGTH:], c='#0000ff', ls='-', lw=default_line_width)
+        axarr[0].plot(x_axis[-CANDLE_FIG_LENGTH:], high_series[-CANDLE_FIG_LENGTH:], c='#ffff55', ls='-', lw=default_line_width)
+        axarr[0].plot(x_axis[-CANDLE_FIG_LENGTH:], low_series[-CANDLE_FIG_LENGTH:], c='#55ff55', ls='-', lw=default_line_width)
         t = datetime.now()
         axarr[0].set_title(stock_number+' Update: '+str(t.year)+'/'+str(t.month)+'/'+str(t.day)+' '+str(t.hour)+':'+str(t.minute)+':'+str(t.second))
         

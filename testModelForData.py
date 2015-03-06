@@ -13,7 +13,7 @@ from models.exampleModel import exampleModel
 last_year = date.today().year-1912
 
 HEADER = ['Filename']
-for i in range(TESTALLDATA_YEAR_START, last_year):
+for i in xrange(TESTALLDATA_YEAR_START, last_year):
     HEADER.append(str(i))
 HEADER.append(str(TESTALLDATA_YEAR_START)+'-'+str(last_year))
 
@@ -45,7 +45,7 @@ def main():
             reader = Reader(number)
             haveOldDataFlag = False
 
-            for test_year in range(TESTALLDATA_YEAR_START, last_year):
+            for test_year in xrange(TESTALLDATA_YEAR_START, last_year):
 
                 sys.stdout.write('%s\t%4d' % (number, test_year))
                 trader = Trader(model.infos, number)#參數是Model Description 和 number
