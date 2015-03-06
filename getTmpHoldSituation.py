@@ -15,12 +15,12 @@ def main():
     drawer = CandleDrawer()
     this_year = str(date.today().year-1911)
 
-    for filename in number_list:
+    for number in number_list:
 
         model = exampleModel()
-        reader = Reader(filename)
+        reader = Reader(number)
 
-        trader = Trader(model.infos, filename)#參數是Model Description 和 filename
+        trader = Trader(model.infos, number)#參數是Model Description 和 number
         endFlag = False
 
         while True:
@@ -30,7 +30,7 @@ def main():
             row = reader.getInput()
 
             if row == None: # 歷史資料爬完了，用現在即時的資料
-                page = requests.get('http://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_'+filename[:-4]+'.tw&json=1&delay=0')
+                page = requests.get('http://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_'+number+'.tw&json=1&delay=0')
                 content = json.loads(page.content)
                 vals = content['msgArray'][0]
                 t = date.today()
@@ -46,14 +46,14 @@ def main():
 
         result = trader.analysis()
 
-        drawer.draw(filename, row)
+        drawer.draw(number, row)
 
         if prediction == 1:
-            print row[0], filename, ' @ ', float(row[6]), '該買囉, 今年累計：', result["ROI"], '%'
+            print row[0], number, ' @ ', float(row[6]), '該買囉, 今年累計：', result["ROI"], '%'
         elif prediction == -1:
-            print row[0], filename, ' @ ', float(row[6]), '該賣囉, 今年累計：', result["ROI"], '%'
+            print row[0], number, ' @ ', float(row[6]), '該賣囉, 今年累計：', result["ROI"], '%'
         elif prediction == 0:
-            print row[0], filename, ' @ ', float(row[6]), '不要動, 今年累計：', result["ROI"], '%'
+            print row[0], number, ' @ ', float(row[6]), '不要動, 今年累計：', result["ROI"], '%'
 
 if __name__ == '__main__':
     sys.exit(main())

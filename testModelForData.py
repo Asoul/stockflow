@@ -19,7 +19,7 @@ HEADER.append(str(TESTALLDATA_YEAR_START)+'-'+str(last_year))
 
 def main():
 
-    file_list = [ f for f in listdir('tsec/data') if f[-4:] == '.csv' ]
+    number_list = [ f for f in listdir('tsec/data') if f[-4:] == '.csv' ]
 
     variables = exampleModel().infos["Recommend Variables"]
 
@@ -36,19 +36,19 @@ def main():
     # 讀取該 model 可以用的參數們
     for variable in variables:
 
-        for filename in file_list:
+        for number in number_list:
             
-            outputrow = [filename[:-4]]
+            outputrow = [number[:-4]]
             over_all = 1.0
 
             model = exampleModel(variable)
-            reader = Reader(filename)
+            reader = Reader(number)
             haveOldDataFlag = False
 
             for test_year in range(TESTALLDATA_YEAR_START, last_year):
 
-                sys.stdout.write('%s\t%4d' % (filename, test_year))
-                trader = Trader(model.infos, filename)#參數是Model Description 和 filename
+                sys.stdout.write('%s\t%4d' % (number, test_year))
+                trader = Trader(model.infos, number)#參數是Model Description 和 number
 
                 while True:
 
@@ -79,7 +79,7 @@ def main():
             outputrow.append(str((over_all-1.0)*100.0)+'%')
             cw.writerow(outputrow)
             
-            sys.stdout.write('%s\toverall\t\t%.3f %%\n' % (filename, (over_all-1)*100))
+            sys.stdout.write('%s\toverall\t\t%.3f %%\n' % (number, (over_all-1)*100))
 
 if __name__ == '__main__':
     sys.exit(main())

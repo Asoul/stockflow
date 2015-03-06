@@ -10,7 +10,7 @@ sys.path.append('..')
 
 index_list = []
 
-for line in open('../stocknumber.csv','rb'):# 先分析股票資料就好，不要證券
+for line in open('../stocknumber.csv','rb'):
     index_list.append(line.strip()+'.csv')
 
 for f in index_list:
