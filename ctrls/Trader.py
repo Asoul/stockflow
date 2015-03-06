@@ -127,8 +127,11 @@ class Trader():
                     total_cost = int(volume * value * (1 + STOCK_FEE))
 
             else:# Volume > 0, 買 n 張
-                # TODO: 實作買幾張
-                pass
+
+                total_cost = volume * value + max(STOCK_MIN_FEE, volume * value * STOCK_FEE)
+
+                if total_cost > self.money:
+                    return self.updateAndreturnInfo('Nothing', 0)
 
             self.money -= total_cost # 扣除股票費和手續費
             self.stock += volume # 持有股票數

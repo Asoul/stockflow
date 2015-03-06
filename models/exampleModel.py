@@ -34,7 +34,7 @@ class exampleModel():
             self.value_ma[i] = np.mean(self.value_series[-min(i, len(self.value_series)):])
 
         # 交易資訊
-        if trade["Volume"] != 0:# 有交易
+        if trade and trade["Volume"] != 0:# 有交易
             if trade["Act"] == 'Buy':
                 self.haveStock += trade["Volume"]
             else:

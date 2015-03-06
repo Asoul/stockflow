@@ -32,7 +32,7 @@ def main():
                 
                 data_year = row[0].split('/')[0]
                 if data_year == '104':
-                    trade = trader.do(float(row[6]), prediction)
+                    trader.do(float(row[6]), prediction)
                     # if trade[5] != 0: print trade
 
             result = trader.analysis()

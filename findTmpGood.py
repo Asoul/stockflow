@@ -4,15 +4,24 @@
 import sys
 import json
 import requests
-from ctrls import *
 from datetime import date
+from ctrls.Tester import Tester
 from models.exampleModel import exampleModel
 
 def main():
 
+    numbers = [ line.strip() for line in open('stocknumber.csv', 'rb') ]
+
+    tester = Tester(numbers, exampleModel)
+
+    tester.train(mode = 'getTmr', roiThr = 0, dateFrom = date(2015,1,1))
+
+    tester.
+
+
     number_list = [ line.strip() for line in open('stocknumber.csv', 'rb') ]
 
-    drawer = CandleDrawer()
+    CandleDrawer()
     this_year = str(date.today().year-1911)
 
     for number in number_list:
@@ -42,7 +51,7 @@ def main():
             
             data_year = row[0].split('/')[0]
             if data_year == this_year:
-                trade = trader.do(float(row[6]), prediction)
+                trader.do(float(row[6]), prediction)
 
         result = trader.analysis()
 

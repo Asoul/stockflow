@@ -28,7 +28,7 @@ def main():
 
     newFileFlag = False if isfile(filename) else True
 
-    fo = open(filename, 'ab')
+    open(filename, 'ab')
     cw = csv.writer(open(filename, 'ab'), delimiter=',', quoting=csv.QUOTE_ALL)
     if newFileFlag:
         cw.writerow(HEADER)
@@ -69,7 +69,7 @@ def main():
                     elif data_year == test_year:
                         model.update(row)
                         prediction = model.predict()
-                        trade = trader.do(float(row[6]), prediction)
+                        trader.do(float(row[6]), prediction)
 
                 result = trader.analysis()
                 sys.stdout.write('\t\t%.3f %%\n' % result["ROI"])

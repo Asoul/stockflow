@@ -12,10 +12,7 @@ def main():
 
     tester = Tester(numbers, exampleModel)
 
-    tester.train(noLog = False, noRecord = True, dateFrom = date(2015,1,1))
-
-    for number in tester.predict(predThr = 0, roiThr = 0):
-        tester.drawCandle(number)
+    tester.run(mode = 'tmrGood', roiThr = 0, dateFrom = date(2015,1,1))
 
     # for number in number_list:
 

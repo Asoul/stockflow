@@ -11,7 +11,7 @@ def main():
     
     numbers = ['1101']# 股票編號
     tester = Tester(numbers, exampleModel)# 使用測試元件
-    tester.train()# 模擬
+    tester.run()# 模擬
 
 if __name__ == '__main__':
     sys.exit(main())
