@@ -189,7 +189,7 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 ## 常用功能
 
-有寫幾個常用功能的範例於檔案中，可以參考使用。
+有寫幾個常用功能的範例於檔案中，可以參考使用，都短短的兩三行就可以做到以下功能。
 
 ### 預測明日趨勢用
 
@@ -221,6 +221,10 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 有 Bug 麻煩跟我說：`azx754@gmail.com`
 
 最後更新時間：`2015/03/07`
+
+## LICENSE
+
+In short, stockflow is available under the MIT license. See the LICENSE file for more info.
 
 ## 我的其他專案
 
