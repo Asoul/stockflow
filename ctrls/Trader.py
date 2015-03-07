@@ -74,7 +74,7 @@ class Trader():
 
         return risks
 
-    def _updateAndreturnInfo(self, action, volume):
+    def _updateAndreturnInfo(self, action, value, volume):
         # 更新資產：最後才更新因為買賣會扣手續費
         asset = int(self.close_series[-1] * self.stock * 1000+ self.money)
         self.asset_series.append(asset)
@@ -93,7 +93,7 @@ class Trader():
             'Day': len(self.close_series),
             'Act': action,
             'Volume': volume,
-            'Value': self.close_series[-1],
+            'Value': value,
             'Money': self.money,
             'Stock': self.stock,
             'Asset': asset,
@@ -115,7 +115,7 @@ class Trader():
 
         # 沒有操作、先擋掉 Volume 小於 0 的錯誤
         if (pred["Act"] != "Buy" and pred["Act"] != "Sell") or pred["Volume"] < 0:
-            return self._updateAndreturnInfo('Nothing', 0)
+            return self._updateAndreturnInfo('Nothing', 0, 0)
 
         # 操作價位
         if pred["Value"] == 0:# 使用開盤價買賣
@@ -123,7 +123,7 @@ class Trader():
         elif pred["Value"] <= self.high_series[-1] and pred["Value"] >= self.low_series[-1]:# 用自訂的金額買賣
             value = pred["Value"] * 1000 # 一張的價錢
         else:
-            return self._updateAndreturnInfo('Nothing', 0)
+            return self._updateAndreturnInfo('Nothing', 0, 0)
 
         # 操作動作
         if pred["Act"] == "Buy":
@@ -145,13 +145,13 @@ class Trader():
                 total_cost = volume * value + max(STOCK_MIN_FEE, volume * value * STOCK_FEE)
 
                 if total_cost > self.money:
-                    return self._updateAndreturnInfo('Nothing', 0)
+                    return self._updateAndreturnInfo('Nothing', 0, 0)
 
             self.money -= total_cost # 扣除股票費和手續費
             self.stock += volume # 持有股票數
             self.buyed_stock += volume # 買過的股票數
 
-            return self._updateAndreturnInfo('Buy', volume)
+            return self._updateAndreturnInfo('Buy', value, volume)
             
         elif pred["Act"] == "Sell":
 
@@ -164,7 +164,7 @@ class Trader():
             self.money += int(value * volume * (1 - STOCK_FEE - STOCK_TAX))
             self.stock -= volume
 
-            return self._updateAndreturnInfo('Sel', volume)
+            return self._updateAndreturnInfo('Sel', value, volume)
     
     def analysis(self):
         '''回傳總交易資訊分析'''
