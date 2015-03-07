@@ -28,8 +28,6 @@ class Trader():
         self.low_series   = [] # 5. 最低價序列
         self.close_series = [] # 6. 收盤價序列
         
-        
-        
         self.trade_series = [] # 交易種類序列, 1 買 -1 賣 0 沒動作
         self.asset_series = [TRADER_INIT_MONEY]# 資產序列, 先加入一個起始資產
         self.stockRate_series = []# 股票佔資產比率

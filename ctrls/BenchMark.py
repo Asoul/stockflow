@@ -11,7 +11,7 @@ from os.path import isfile, join
 class BenchMark():
     '''To Run BenchMark on specific numbers for specific years'''
 
-    def __init__(self, numbers, Model, years):
+    def __init__(self, numbers, Model):
         # check the number from Database, remove error numbers
         tsecNumbers = [ n[:-4] for n in listdir(TSEC_DATA_PATH) if n[-4:] == '.csv' ]
         for number in numbers:
@@ -26,9 +26,10 @@ class BenchMark():
         '''輸出至同一個 Model 下紀錄的 Header'''
         header = ["number"]
         for year in self.years:
-            self.HEADER.append(year)
-        self.HEADER.append('total')
-        
+            header.append(year)
+        header.append('total')
+        return header
+
     def recordForModel(self, number, model_rois):
         '''紀錄至同一個 Model 下'''
         filename = join(BENCHMARK_MODEL_PATH, number + '.csv')
@@ -57,7 +58,7 @@ class BenchMark():
 
             for year in self.years:
 
-                sys.stdout.write('%4d  %s' % (year ,number))
+                sys.stdout.write('%s  %4d' % (number, year))
 
                 reader = Reader(number)
                 model = self.Model()
@@ -80,14 +81,17 @@ class BenchMark():
 
                 result = trader.analysis()
 
-                sys.stdout.write('  %4.3f %%\n' % result["ROI"])
+                sys.stdout.write('\t%4.3f %%\n' % result["ROI"])
 
                 brs[year].update(result)
-                model_rois.append(str(round(result["ROI"], 3) + '%'))
-                overall_roi *= result["ROI"]
+                model_rois.append(str(round(result["ROI"], 3)) + '%')
+                overall_roi *= (result["ROI"]/100+1)
+
+            overall_roi = str(round((overall_roi-1)*100, 3))+'%'
 
             model_rois.append(overall_roi)
             self.recordForModel(number, model_rois)
+            sys.stdout.write('%4s total\t%s %%\n\n' % (number, overall_roi))
 
         for year in self.years:
             brs[year].record()

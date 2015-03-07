@@ -1,13 +1,11 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
 
-import os
-import csv
 import numpy as np
 from config import *
 from datetime import datetime
+from ctrls.Reader import Reader
 import matplotlib.pyplot as plt
-from os.path import join, isdir
 from matplotlib.finance import candlestick_ohlc
 
 class CandleDrawer():
@@ -43,7 +41,7 @@ class CandleDrawer():
         )
 
 
-    def draw(self, result):
+    def drawWithData(self, result, length = CANDLE_FIG_LENGTH):
 
         # Candle Stick
         candle_sticks = []
@@ -62,23 +60,23 @@ class CandleDrawer():
         bool_up_series, ma_series, bool_down_series = self.getBooleanBand(result["Close Series"])
         
         # Draw Figure
-        default_line_width = CANDLE_FIG_LINE_WIDTH
+        line_width = CANDLE_FIG_LINE_WIDTH
         
         fig, axarr = plt.subplots(2, sharex=True)
 
-        candlestick_ohlc(axarr[0], candle_sticks[-CANDLE_FIG_LENGTH:], width=CANDLE_STICK_WIDTH)
+        candlestick_ohlc(axarr[0], candle_sticks[-length:], width=CANDLE_STICK_WIDTH)
         
         x_axis = range(len(result["Close Series"]))
         # set zorder 讓 candlestick 可以在上面
-        axarr[0].plot(x_axis[-CANDLE_FIG_LENGTH:], ma_series[-CANDLE_FIG_LENGTH:], c='#00ff00', ls='-', lw=default_line_width, zorder=-5)
-        axarr[0].plot(x_axis[-CANDLE_FIG_LENGTH:], bool_up_series[-CANDLE_FIG_LENGTH:], c='#ff0000', ls='-', lw=default_line_width, zorder=-4)
-        axarr[0].plot(x_axis[-CANDLE_FIG_LENGTH:], bool_down_series[-CANDLE_FIG_LENGTH:], c='#0000ff', ls='-', lw=default_line_width, zorder=-3)
-        axarr[0].plot(x_axis[-CANDLE_FIG_LENGTH:], result["High Series"][-CANDLE_FIG_LENGTH:], c='#ff3399', ls='-', lw=default_line_width, zorder=-2)
-        axarr[0].plot(x_axis[-CANDLE_FIG_LENGTH:], result["Low Series"][-CANDLE_FIG_LENGTH:], c='#0099ff', ls='-', lw=default_line_width, zorder=-1)
+        axarr[0].plot(x_axis[-length:], ma_series[-length:], c='#00ff00', ls='-', lw=line_width, zorder=-5)
+        axarr[0].plot(x_axis[-length:], bool_up_series[-length:], c='#ff0000', ls='-', lw=line_width, zorder=-4)
+        axarr[0].plot(x_axis[-length:], bool_down_series[-length:], c='#0000ff', ls='-', lw=line_width, zorder=-3)
+        axarr[0].plot(x_axis[-length:], result["High Series"][-length:], c='#ff3399', ls='-', lw=line_width, zorder=-2)
+        axarr[0].plot(x_axis[-length:], result["Low Series"][-length:], c='#0099ff', ls='-', lw=line_width, zorder=-1)
         
         axarr[0].set_title(self.getFigTitle(result["Stock Number"]))
         
-        axarr[1].plot(x_axis[-CANDLE_FIG_LENGTH:], result["Quant Series"][-CANDLE_FIG_LENGTH:], c='#000000', ls='-', lw=default_line_width)
+        axarr[1].plot(x_axis[-length:], result["Quant Series"][-length:], c='#000000', ls='-', lw=line_width)
         
         # set figure arguments
         fig.set_size_inches(FIGURE_WIDTH, FIGURE_HEIGHT)
@@ -90,3 +88,21 @@ class CandleDrawer():
         plt.clf()
         plt.close('all')
     
+    def draw(self, number, length = CANDLE_FIG_LENGTH):
+        reader = Reader(number)
+        series = [[] for x in xrange(7)]
+
+        while True:
+            row = reader.getInput()
+            if row == None: break
+            for i in [1, 3, 4, 5, 6]:
+                series[i].append(float(row[i]))
+
+        self.drawWithData({
+            "Stock Number": number,
+            "Quant Series": series[1],
+            "Open Series": series[3],
+            "High Series": series[4],
+            "Low Series": series[5],
+            "Close Series": series[6],
+        }, length = length)

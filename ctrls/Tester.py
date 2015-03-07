@@ -98,7 +98,7 @@ class Tester():
                     print last_row[0], number, ' at ', float(last_row[6]), '該買囉, ROI 累計：', result["ROI"], '%'
                     
                     # 預設買前看一下 CandleStick 確定一下
-                    if drawCandle: CandleDrawer().draw(result)
+                    if drawCandle: CandleDrawer().drawWithData(result)
 
             elif mode == 'tmpHold' or mode == 'tmrHold':
                 if prediction["Act"] == 'Sell':
@@ -107,4 +107,4 @@ class Tester():
                     print last_row[0], number, ' at ', float(last_row[6]), '不要動, ROI 累計：', result["ROI"], '%'
 
                 # 做操作前看一下 CandleStick 確定一下
-                if drawCandle: CandleDrawer().draw(result)
+                if drawCandle: CandleDrawer().drawWithData(result)

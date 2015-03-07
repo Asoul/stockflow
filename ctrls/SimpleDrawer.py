@@ -1,35 +1,43 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
 
-from os import listdir
-from os.path import isfile, join
-import csv
+from config import *
+from os.path import join
+from datetime import datetime
+from ctrls.Reader import Reader
 import matplotlib.pyplot as plt
-import sys
-sys.path.append('..')
 
-index_list = []
+class SimpleDrawer():
+    '''畫出收盤價圖'''
 
-for line in open('../stocknumber.csv','rb'):
-    index_list.append(line.strip()+'.csv')
+    def getFigTitle(self, stock_number):
+        t = datetime.now()
+        return ('%s, Update: %s/%s/%s %s:%s:%s' % (stock_number,
+            str(t.year), str(t.month),str(t.day),
+            str(t.hour), str(t.minute), str(t.second))
+        )
 
-for f in index_list:
-    print f
-    csvfile = open(join(mypath,f), 'rb')
-    csvreader = csv.reader(csvfile, delimiter=',')
-    series = []
-    for row in csvreader:
-        if row[6] != '--' and float(row[6]) != 0:
+    def drawWithData(self, series, number, length = SIMPLE_FIG_LENGTH):
+        x_axis = range(len(series[-SIMPLE_FIG_LENGTH:]))
+        plt.plot(x_axis, series[-SIMPLE_FIG_LENGTH:], 'b--', ls='-')
+        plt.title(self.getFigTitle(number))
+
+        # set figure
+        fig = plt.gcf()
+        fig.set_size_inches(FIGURE_WIDTH, FIGURE_HEIGHT)
+
+        # output figure
+        fig.savefig(join(SIMPLE_FIG_PATH, number+'.png'), dpi=FIGURE_DPI)
+        plt.clf()
+        plt.close('all')
+
+    def draw(self, number, length = SIMPLE_FIG_LENGTH):
+        reader = Reader(number)
+        series = []
+
+        while True:
+            row = reader.getInput()
+            if row == None: break
             series.append(float(row[6]))
-    x_axis = range(0, len(series))
-    plt.plot(x_axis, series, 'b--', ls='-')
-    plt.title('ID = %s, Update Date = %s' % (f[:-4], row[0]))
 
-    # set figure arguments
-    fig = plt.gcf()
-    fig.set_size_inches(FIGURE_WIDTH, FIGURE_HEIGHT)
-
-    # output figure
-    fig.savefig(join('../figures',f[:-4]+'.png'), dpi=FIGURE_DPI)
-    plt.clf()
-    plt.close('all')
+        self.drawWithData(series, number, length)

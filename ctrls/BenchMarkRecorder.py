@@ -44,7 +44,7 @@ class BenchMarkRecorder():
 
     def record(self):
         
-        filename = join(BENCHMARK_PATH, str(self.year)+'.csv')
+        filename = join(BENCHMARK_YEAR_PATH, str(self.year)+'.csv')
         newFileFlag = True if not isfile(filename) else False
         
         fo = open(filename, 'ab')
@@ -55,7 +55,7 @@ class BenchMarkRecorder():
         cw.writerow([
             self.model_infos["Model Description"],
             self.model_infos["Model Version"],
-            str(round((gmean(self.rois)-1)*100), 3)+'%' if len(self.rois) > 0 else '0.0%',
+            str(round((gmean(self.rois)-1)*100, 3))+'%' if len(self.rois) > 0 else '0.0%',
             round(np.mean(self.hold_stock), 3) if len(self.hold_stock) > 0 else 0.0,
             round(np.mean(self.week_risks), 3) if len(self.week_risks) > 0 else 0.0,
             round(np.mean(self.trade_count), 3) if len(self.trade_count) > 0 else 0.0,
