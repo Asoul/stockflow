@@ -26,7 +26,7 @@ class exampleModel():
             "Recommend Variables": variables
         }
 
-    def update(self, row, trade):
+    def update(self, row, trade = None):
         self.value_series.append(float(row[6]))
 
         # Simple Moving Average

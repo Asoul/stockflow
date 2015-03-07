@@ -45,3 +45,7 @@ CANDLE_FIG_PATH = 'results/candle'
 CANDLE_FIG_LENGTH = 120
 # 蠟燭圖布林通道天數
 CANDLE_BOOL_NUM = 20
+# 蠟燭圖布林線寬
+CANDLE_FIG_LINE_WIDTH = 1
+# 蠟燭寬
+CANDLE_STICK_WIDTH = 0.6

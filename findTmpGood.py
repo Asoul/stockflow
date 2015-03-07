@@ -11,54 +11,8 @@ from models.exampleModel import exampleModel
 def main():
 
     numbers = [ line.strip() for line in open('stocknumber.csv', 'rb') ]
-
     tester = Tester(numbers, exampleModel)
-
-    tester.train(mode = 'getTmr', roiThr = 0, dateFrom = date(2015,1,1))
-
-    tester.
-
-
-    number_list = [ line.strip() for line in open('stocknumber.csv', 'rb') ]
-
-    CandleDrawer()
-    this_year = str(date.today().year-1911)
-
-    for number in number_list:
-
-        model = exampleModel()
-        reader = Reader(number)
-
-        trader = Trader(model.infos, number)#參數是Model Description 和 number
-        endFlag = False
-
-        while True:
-            
-            if endFlag:
-                break
-            row = reader.getInput()
-
-            if row == None: # 歷史資料爬完了，用現在即時的資料
-                page = requests.get('http://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_'+number+'.tw&json=1&delay=0')
-                content = json.loads(page.content)
-                vals = content['msgArray'][0]
-                t = date.today()
-                row = [str(t.year-1911)+'/'+str(t.month).zfill(2)+'/'+str(t.day).zfill(2), 0, 0, vals['o'], vals['h'], vals['l'], vals['z'], 0, 0]
-                endFlag = True
-
-            model.update(row)
-            prediction = model.predict()
-            
-            data_year = row[0].split('/')[0]
-            if data_year == this_year:
-                trader.do(float(row[6]), prediction)
-
-        result = trader.analysis()
-
-        if float(row[6]) < 25.0:
-            if prediction == 1:
-                print row[0], number, ' @ ', float(row[6]), '該買囉, 今年累計：', result["ROI"], '%'
-                # drawer.draw(number)
+    tester.run( mode = 'tmpGood', dateFrom = date(2015,1,1))
 
 if __name__ == '__main__':
     sys.exit(main())

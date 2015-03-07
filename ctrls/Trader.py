@@ -12,13 +12,24 @@ class Trader():
         # 基本資料
         self.model_infos = model_infos
         self.stock_number = stock_number
+        self.date_from = None
+        self.date_to = None
 
         # 錢和股票
         self.money = TRADER_INIT_MONEY
         self.stock = 0
 
         # 時間序列
-        self.value_series = [] # 價格序列
+        # 交易日期、成交股數、成交金額、開盤價、最高價、最低價、收盤價、漲跌價差、成交筆數
+        self.date_series  = [] # 0. 日期序列
+        self.quant_series = [] # 1. 量序列
+        self.open_series  = [] # 3. 開盤價序列
+        self.high_series  = [] # 4. 最高價序列
+        self.low_series   = [] # 5. 最低價序列
+        self.close_series = [] # 6. 收盤價序列
+        
+        
+        
         self.trade_series = [] # 交易種類序列, 1 買 -1 賣 0 沒動作
         self.asset_series = [TRADER_INIT_MONEY]# 資產序列, 先加入一個起始資產
         self.stockRate_series = []# 股票佔資產比率
@@ -35,15 +46,15 @@ class Trader():
         buy_series = []
         sell_series = []
 
-        for i in range(len(self.value_series)):
+        for i in range(len(self.close_series)):
         
             if self.trade_series[i] == 1:
-                buy_series.append(self.value_series[i])
+                buy_series.append(self.close_series[i])
             else:
                 buy_series.append(None)
 
             if self.trade_series[i] == -1:
-                sell_series.append(self.value_series[i])
+                sell_series.append(self.close_series[i])
             else:
                 sell_series.append(None)
 
@@ -67,13 +78,13 @@ class Trader():
 
     def updateAndreturnInfo(self, action, volume):
         # 更新資產：最後才更新因為買賣會扣手續費
-        asset = int(self.value_series[-1] * self.stock * 1000+ self.money)
+        asset = int(self.close_series[-1] * self.stock * 1000+ self.money)
         self.asset_series.append(asset)
 
         # 更新持有的股票數 x 一天
         self.hold_stock += self.stock
         # 更新股票占資產的比率序列
-        self.stockRate_series.append(float(self.value_series[-1] * self.stock)/asset)
+        self.stockRate_series.append(float(self.close_series[-1] * self.stock)/asset)
         
         # 更新買賣序列
         if action == 'Buy': self.trade_series.append(1)
@@ -81,10 +92,10 @@ class Trader():
         else: self.trade_series.append(0)
         
         return {
-            'Day': len(self.value_series),
+            'Day': len(self.close_series),
             'Act': action,
             'Volume': volume,
-            'Value': self.value_series[-1],
+            'Value': self.close_series[-1],
             'Money': self.money,
             'Stock': self.stock,
             'Asset': asset,
@@ -94,9 +105,14 @@ class Trader():
     def do(self, row, pred):
         '''更新資訊並做交易，row 是新的一份資料，pred 是 model 傳來想要買或賣的資料'''
 
-        self.value_series.append(float(row[6]))
-        todayHigh = float(row[4])
-        todayLow = float(row[5])
+        # 更新資料
+        self.date_series.append(row[0])
+        self.quant_series.append(float(row[1]))
+        self.open_series.append(float(row[3]))
+        self.high_series.append(float(row[4]))
+        self.low_series.append(float(row[5]))
+        self.close_series.append(float(row[6]))
+
         # todayQuant = float(row[1]) # TODO: 實作量的限制
 
         # 沒有操作、先擋掉 Volume 小於 0 的錯誤
@@ -105,8 +121,8 @@ class Trader():
 
         # 操作價位
         if pred["Value"] == 0:# 使用開盤價買賣
-            value = self.value_series[-1] * 1000 # 一張的價錢
-        elif pred["Value"] <= todayHigh and pred["Value"] >= todayLow:# 用自訂的金額買賣
+            value = self.close_series[-1] * 1000 # 一張的價錢
+        elif pred["Value"] <= self.high_series[-1] and pred["Value"] >= self.low_series[-1]:# 用自訂的金額買賣
             value = pred["Value"] * 1000 # 一張的價錢
         else:
             return self.updateAndreturnInfo('Nothing', 0)
@@ -156,8 +172,7 @@ class Trader():
         '''回傳總交易資訊分析'''
 
         ROI = float(self.asset_series[-1]) / TRADER_INIT_MONEY
-        days = len(self.value_series)
-        years = days/240 if days > 0 else 0
+        days = len(self.close_series)
 
         trade_count = len(self.trade_series) - self.trade_series.count(0)
 
@@ -172,9 +187,16 @@ class Trader():
             "Update Time": self.model_infos["Update Time"],
             "Model Version": self.model_infos["Model Version"],
             "Stock Number": self.stock_number,
+            "Date From": self.date_series[0] if len(self.date_series) > 0 else 'No Period',
+            "Date To": self.date_series[-1] if len(self.date_series) > 0 else 'No Period',
 
             # 時間序列
-            "Value Series": self.value_series,
+            "Date Series": self.date_series,
+            "Value Series": self.close_series,
+            "High Series": self.high_series,
+            "Low Series": self.low_series,
+            "Open Series": self.open_series,
+            "Quant Series": self.quant_series,
             "Trade Series": self.trade_series,
             "Buy Series": buy_series,
             "Sell Series": sell_series,
@@ -191,10 +213,9 @@ class Trader():
             "Trade Count": len(self.trade_series) - self.trade_series.count(0),
             
             # 報酬
+            "ROI": (ROI-1)*100,
             "Weekly ROI": (ROI**(float(5)/days) - 1)*100 if days != 0 else 0.0,
             "ROI Per Trade": (ROI**(2.0/(len(self.trade_series) - self.trade_series.count(0)))-1)*100 if len(self.trade_series) != self.trade_series.count(0) else 0.0,
-            "ROI": (ROI-1)*100,
-            "Year Interest": ROI/years if years > 0 else 0,
             
             # 風險
             "Daily Risk": day_risks,

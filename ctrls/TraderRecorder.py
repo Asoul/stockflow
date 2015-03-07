@@ -13,6 +13,7 @@ HEADERS = [
     "ROI",
     "ROI Per Trade",
     "Weekly ROI",
+    "Stock-Hold Day",
     "Daily Risk",
     "Weekly Risk",
     "Monthly Risk",
@@ -22,9 +23,10 @@ HEADERS = [
     "Trade Count",
     "Stock / Asset Rate",
     "Stock / Asset Change Std",
-    "Stock-Hold Day",
+    "Date From",
+    "Date To",
     "Initial Money",
-    "Update Time",
+    "Model Update Time",
     "Model Version",
     "Test Time"
 ]
@@ -54,7 +56,7 @@ class TraderRecorder():
         cw.writerow([col1]+row)
 
     def recordToPNG(self, result):
-        '''輸出買賣過程的圖檔，紅色的三角形是買入，藍色正方形是賣出'''
+        '''輸出買賣過程的圖檔，以當天收盤價當作約略的點，紅色的三角形是買入，藍色正方形是賣出'''
         # 輸出買賣圖檔
         x_axis = range(len(result["Value Series"]))
         
@@ -83,31 +85,32 @@ class TraderRecorder():
         plt.clf()
         plt.close('all')
         
-    def record(self, result, noCSV = False, noPNG = False):
+    def record(self, result):
         '''把 Treader 的結果記錄下來'''
         row = [
             str(result["ROI"])+'%',
             str(result["ROI Per Trade"])+'%',
             str(result["Weekly ROI"])+'%',
-            result["Daily Risk"],
-            result["Weekly Risk"],
-            result["Monthly Risk"],
-            result["Yearly Risk"],
+            round(result["Stock-Hold Day"], 3),
+            round(result["Daily Risk"], 3),
+            round(result["Weekly Risk"], 3),
+            round(result["Monthly Risk"], 3),
+            round(result["Yearly Risk"], 3),
             result["Buy Count"],
             result["Sell Count"],
             result["Trade Count"],
-            result["Stock / Asset Rate"],
-            result["Stock / Asset Change Std"],
-            result["Stock-Hold Day"],
+            round(result["Stock / Asset Rate"], 3),
+            round(result["Stock / Asset Change Std"], 3),
+            result["Date From"],
+            result["Date To"],
             result["Initial Money"],
             result["Update Time"],
             result["Model Version"],
             self.getFromattedTime()
         ]
 
-        if not noCSV:
-            self.recordToCSV(MODEL_RESULT_PATH, result["Model Description"], result["Stock Number"], row)
-            self.recordToCSV(STOCK_RESULT_PATH, result["Stock Number"], result["Model Description"], row)
+        self.recordToCSV(MODEL_RESULT_PATH, result["Model Description"], result["Stock Number"], row)
+        self.recordToCSV(STOCK_RESULT_PATH, result["Stock Number"], result["Model Description"], row)
 
-        if not noPNG:
-            self.recordToPNG(result)
+        
+        self.recordToPNG(result)
