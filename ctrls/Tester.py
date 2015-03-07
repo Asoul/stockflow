@@ -7,6 +7,7 @@ import requests
 from ctrls import *
 from config import *
 from os import listdir
+from datetime import date
 
 class Tester():
     '''To Test models'''
@@ -21,13 +22,13 @@ class Tester():
         self.numbers = numbers
         self.Model = Model
 
-    def printTrade(self, row, trade):
+    def _printTrade(self, row, trade):
         print ('%s %s %d at %.2f, Money: %d, Stock: %d, Asset: %d, Rate: %.3f%%' % 
             (row[0], trade['Act'], trade['Volume'], trade['Value'], 
             trade['Money'], trade['Stock'], trade['Asset'], trade['Rate'])
         )
 
-    def getTmpData(self, number):
+    def _getTmpData(self, number):
 
         page = requests.get('http://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_'+number+'.tw&json=1&delay=0')
         content = json.loads(page.content)
@@ -36,7 +37,7 @@ class Tester():
         return [str(t.year-1911)+'/'+str(t.month).zfill(2)+'/'+str(t.day).zfill(2),
                 vals['v'], 0, vals['o'], vals['h'], vals['l'], vals['z'], 0, 0]
 
-    def notInPeriod(self, row, dateFrom, dateTo):
+    def _notInPeriod(self, row, dateFrom, dateTo):
 
         data_day = date(int(row[0].split('/')[0])+1911, 
                         int(row[0].split('/')[1]),
@@ -68,22 +69,21 @@ class Tester():
                 row = reader.getInput()
                 if row == None:
                     if tmpFlag:
-                        row = self.getTmpData(number)
+                        row = self._getTmpData(number)
                         tmpFlag = False
                     else: break
 
                 last_row = row
 
-                prediction = model.predict()
-                
-                if (dateFrom or dateTo) and self.notInPeriod(row, dateFrom, dateTo):
+                if (dateFrom or dateTo) and self._notInPeriod(row, dateFrom, dateTo):
                     model.update(row, None)
                 else:
+                    prediction = model.predict()
                     trade = trader.do(row, prediction)
                     model.update(row, trade)
 
                     if mode == 'train' and not noLog and trade['Volume'] != 0:
-                        self.printTrade(row, trade)
+                        self._printTrade(row, trade)
             
             result = trader.analysis()
 
@@ -98,7 +98,7 @@ class Tester():
                     print last_row[0], number, ' at ', float(last_row[6]), '該買囉, ROI 累計：', result["ROI"], '%'
                     
                     # 預設買前看一下 CandleStick 確定一下
-                    if drawCandle: CandleDrawer().drawWithData(result)
+                    if drawCandle: CandleDrawer().draw(number)
 
             elif mode == 'tmpHold' or mode == 'tmrHold':
                 if prediction["Act"] == 'Sell':
@@ -107,4 +107,4 @@ class Tester():
                     print last_row[0], number, ' at ', float(last_row[6]), '不要動, ROI 累計：', result["ROI"], '%'
 
                 # 做操作前看一下 CandleStick 確定一下
-                if drawCandle: CandleDrawer().drawWithData(result)
+                if drawCandle: CandleDrawer().draw(number)

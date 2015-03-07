@@ -12,7 +12,6 @@ class exampleModel():
         # 紀錄狀態
         self.haveStock = 0.0
         self.buyValue = 0.0
-        self.buyDay = 0
 
         # Simple Moving Average
         self.value_ma = [0.0 for x in xrange(121)]  # the value ma(x) series
@@ -41,21 +40,13 @@ class exampleModel():
             if self.haveStock < 0:
                 raise Exception("haveStock cannot be negative")
 
-        # 股市持有資訊
-        if self.haveStock > 0: self.buyDay += 1
-        else: self.buyDay = 0
-
     def predict(self):
         '''
         讓 model 預測下一步應該要怎麼做，模擬下單的過程，會要回傳一個 dictionary，包含：
             Act: Buy, Sell or Nothing
-            Value: 要下單的價格
-            Volume: 要下單的量
+            Value: 要下單的價格，0 代表用開盤價買
+            Volume: 要下單的量，0 代表能買多少盡量買
         '''
-        # 做交易
-        # pred[0] >0 是買，<0 是賣，=0是不動作
-        # 1 是有多少錢買多少，-1 是有多少股票賣多少，0.5 是有多少錢買一半... 依此類推
-        # pred[1] 是要買或賣的價格，今天要有在這個價格內才會交易成功
         if len(self.value_series) == 0:
             return {"Act": "Nothing", "Value": 0, "Volume": 0}
         elif self.haveStock == 0 and(# 沒有持有的情況

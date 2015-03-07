@@ -39,7 +39,7 @@ class Trader():
         # TODO: 實作 quant Limit
         self.noQuantLimit = noQuantLimit
 
-    def getBuyAndSellSeries(self):
+    def _getBuyAndSellSeries(self):
         '''為了做成買賣趨勢圖，把交易序列和價格序列，各轉換為一個序列，有買賣就放值，沒買賣就放 None'''
         buy_series = []
         sell_series = []
@@ -58,7 +58,7 @@ class Trader():
 
         return buy_series, sell_series
 
-    def getRisks(self):
+    def _getRisks(self):
         risks = [0.0, 0.0, 0.0, 0.0]# 分別為日、週、月、年的風險值
         risk_days = [1, 5, 20, 240]
 
@@ -74,7 +74,7 @@ class Trader():
 
         return risks
 
-    def updateAndreturnInfo(self, action, volume):
+    def _updateAndreturnInfo(self, action, volume):
         # 更新資產：最後才更新因為買賣會扣手續費
         asset = int(self.close_series[-1] * self.stock * 1000+ self.money)
         self.asset_series.append(asset)
@@ -115,15 +115,15 @@ class Trader():
 
         # 沒有操作、先擋掉 Volume 小於 0 的錯誤
         if (pred["Act"] != "Buy" and pred["Act"] != "Sell") or pred["Volume"] < 0:
-            return self.updateAndreturnInfo('Nothing', 0)
+            return self._updateAndreturnInfo('Nothing', 0)
 
         # 操作價位
         if pred["Value"] == 0:# 使用開盤價買賣
-            value = self.close_series[-1] * 1000 # 一張的價錢
+            value = self.open_series[-1] * 1000 # 一張的價錢
         elif pred["Value"] <= self.high_series[-1] and pred["Value"] >= self.low_series[-1]:# 用自訂的金額買賣
             value = pred["Value"] * 1000 # 一張的價錢
         else:
-            return self.updateAndreturnInfo('Nothing', 0)
+            return self._updateAndreturnInfo('Nothing', 0)
 
         # 操作動作
         if pred["Act"] == "Buy":
@@ -145,13 +145,13 @@ class Trader():
                 total_cost = volume * value + max(STOCK_MIN_FEE, volume * value * STOCK_FEE)
 
                 if total_cost > self.money:
-                    return self.updateAndreturnInfo('Nothing', 0)
+                    return self._updateAndreturnInfo('Nothing', 0)
 
             self.money -= total_cost # 扣除股票費和手續費
             self.stock += volume # 持有股票數
             self.buyed_stock += volume # 買過的股票數
 
-            return self.updateAndreturnInfo('Buy', volume)
+            return self._updateAndreturnInfo('Buy', volume)
             
         elif pred["Act"] == "Sell":
 
@@ -164,7 +164,7 @@ class Trader():
             self.money += int(value * volume * (1 - STOCK_FEE - STOCK_TAX))
             self.stock -= volume
 
-            return self.updateAndreturnInfo('Sel', volume)
+            return self._updateAndreturnInfo('Sel', volume)
     
     def analysis(self):
         '''回傳總交易資訊分析'''
@@ -174,9 +174,9 @@ class Trader():
 
         trade_count = len(self.trade_series) - self.trade_series.count(0)
 
-        buy_series, sell_series = self.getBuyAndSellSeries()
+        buy_series, sell_series = self._getBuyAndSellSeries()
 
-        day_risks, week_risks, month_risks, year_risks = self.getRisks()
+        day_risks, week_risks, month_risks, year_risks = self._getRisks()
 
         return {
 

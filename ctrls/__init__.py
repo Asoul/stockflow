@@ -1,11 +1,12 @@
-__all__ = ['Trader', 'Reader', 'TraderRecorder', 'CandleDrawer', 'BenchMarkRecorder']
+__all__ = ['Trader', 'Reader', 'TraderRecorder', 'CandleDrawer', 'BenchYearRecorder', 'BenchModelRecorder']
 
 from config import *
 from Reader import Reader
 from Trader import Trader
 from CandleDrawer import CandleDrawer
 from TraderRecorder import TraderRecorder
-from BenchMarkRecorder import BenchMarkRecorder
+from BenchYearRecorder import BenchYearRecorder
+from BenchModelRecorder import BenchModelRecorder
 
 import os
 from os.path import isdir

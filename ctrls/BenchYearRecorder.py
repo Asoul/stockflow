@@ -20,8 +20,8 @@ HEADERS = [
     "Test Time"
 ]
 
-class BenchMarkRecorder():
-    
+class BenchYearRecorder():
+    '''Record the BenchMark Result For Year'''
     def __init__(self, model_infos, year):
         self.model_infos = model_infos
         self.rois = []
@@ -30,7 +30,7 @@ class BenchMarkRecorder():
         self.trade_count = [] 
         self.year = year
 
-    def getFromattedTime(self):
+    def _getFromattedTime(self):
         '''回傳現在格式化的時間，ex. 2015/03/06 17:25:16 '''
         t = datetime.now()
         return (str(t.year)+'/'+str(t.month).zfill(2)+'/'+'/'+str(t.day).zfill(2)+'/'+
@@ -59,6 +59,6 @@ class BenchMarkRecorder():
             round(np.mean(self.hold_stock), 3) if len(self.hold_stock) > 0 else 0.0,
             round(np.mean(self.week_risks), 3) if len(self.week_risks) > 0 else 0.0,
             round(np.mean(self.trade_count), 3) if len(self.trade_count) > 0 else 0.0,
-            self.getFromattedTime()
+            self._getFromattedTime()
         ])
         

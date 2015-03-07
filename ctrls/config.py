@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # 資料來源
-TSEC_DATA_PATH = 'tsec/data/'
+TSEC_DATA_PATH = 'tsec/data'
 
 # 輸出位置
 RESULT_PATH = 'results'
@@ -30,7 +30,7 @@ MODEL_RESULT_PATH = RESULT_PATH + '/model'
 STOCK_FIGURE_PATH = RESULT_PATH + '/tradefig-stock'
 MODEL_FIGURE_PATH = RESULT_PATH + '/tradefig-model'
 
-'''BenchMarkRecorder'''
+'''BenchMark'''
 
 # Benchmark 從民國 100 年開始測到 104 年
 BENCHMARK_YEAR_START = 100

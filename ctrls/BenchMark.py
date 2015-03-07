@@ -22,43 +22,24 @@ class BenchMark():
         self.Model = Model
         self.years = range(BENCHMARK_YEAR_START, BENCHMARK_YEAR_END + 1)
 
-    def getModelHeader(self):
-        '''輸出至同一個 Model 下紀錄的 Header'''
-        header = ["number"]
-        for year in self.years:
-            header.append(year)
-        header.append('total')
-        return header
-
-    def recordForModel(self, number, model_rois):
-        '''紀錄至同一個 Model 下'''
-        filename = join(BENCHMARK_MODEL_PATH, number + '.csv')
-        newFileFlag = True if not isfile(filename) else False
-
-        f = open(filename, 'ab')
-        cw = csv.writer(f, delimiter = ',')
-
-        if newFileFlag: cw.writerow(self.getModelHeader())
-
-        cw.writerow(model_rois)
-
-    def run(self):
+    def run(self, noLog = False):
         '''
             依照年份測試指定清單的資料。
         '''
-        # Initialize BenchMarkRecorder
-        brs = dict()
+        # Initialize BenchYearRecorder and BenchModelRecorder
+        benchYearRecorders = dict()
         for year in self.years:
-            brs[year] = BenchMarkRecorder(self.Model().infos, year)
+            benchYearRecorders[year] = BenchYearRecorder(self.Model().infos, year)
+
+        
 
         for number in self.numbers:
 
-            model_rois = [number]
-            overall_roi = 1.0
+            benchModelRecorder = BenchModelRecorder(self.Model().infos, number)
 
             for year in self.years:
 
-                sys.stdout.write('%s  %4d' % (number, year))
+                if not noLog: sys.stdout.write('%s  %4d' % (number, year))
 
                 reader = Reader(number)
                 model = self.Model()
@@ -76,22 +57,16 @@ class BenchMark():
                     elif data_year == year:
                         trade = trader.do(row, prediction)
                         model.update(row, trade)
-                    else:
-                        model.update(row, None)
+                    else: model.update(row, None)
 
                 result = trader.analysis()
 
-                sys.stdout.write('\t%4.3f %%\n' % result["ROI"])
+                if not noLog: sys.stdout.write('\t%4.3f %%\n' % result["ROI"])
 
-                brs[year].update(result)
-                model_rois.append(str(round(result["ROI"], 3)) + '%')
-                overall_roi *= (result["ROI"]/100+1)
+                benchYearRecorders[year].update(result)
+                benchModelRecorder.update(result)
 
-            overall_roi = str(round((overall_roi-1)*100, 3))+'%'
-
-            model_rois.append(overall_roi)
-            self.recordForModel(number, model_rois)
-            sys.stdout.write('%4s total\t%s %%\n\n' % (number, overall_roi))
+            benchModelRecorder.record()
 
         for year in self.years:
-            brs[year].record()
+            benchYearRecorders[year].record()

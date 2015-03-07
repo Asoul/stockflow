@@ -3,11 +3,12 @@
 
 import csv
 from config import *
+from os.path import join
 
 class Reader():
     '''To Read file'''
     def __init__(self, number):
-        self.path = TSEC_DATA_PATH + number + '.csv'
+        self.path = join(TSEC_DATA_PATH, number + '.csv')
         try:
             csvfile = open(self.path, 'rb')
             self.csvreader = csv.reader(csvfile, delimiter=',')

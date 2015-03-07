@@ -34,13 +34,13 @@ HEADERS = [
 class TraderRecorder():
     '''Record the Trader result'''
 
-    def getFromattedTime(self):
+    def _getFromattedTime(self):
         '''回傳現在格式化的時間，ex. 2015/03/06 17:25:16 '''
         t = datetime.now()
         return (str(t.year)+'/'+str(t.month).zfill(2)+'/'+'/'+str(t.day).zfill(2)+'/'+
             str(t.hour).zfill(2)+':'+str(t.minute).zfill(2)+':'+str(t.second).zfill(2))
 
-    def recordToCSV(self, folder, filename, col1, row):
+    def _recordToCSV(self, folder, filename, col1, row):
         ''' 把資料存到紀錄同一個 Model 資料、和同一隻股票資料的檔案中
         folder 是輸出位置：有可能是 MODEL_RESULT_PATH 或 STOCK_RESULT_PATH 
         filename 是檔案名稱：如果是 Model 的話就是 Model 的敘述，Stock 的話就是股票編號
@@ -55,7 +55,7 @@ class TraderRecorder():
 
         cw.writerow([col1]+row)
 
-    def recordToPNG(self, result):
+    def _recordToPNG(self, result):
         '''輸出買賣過程的圖檔，以當天收盤價當作約略的點，紅色的三角形是買入，藍色正方形是賣出'''
         # 輸出買賣圖檔
         x_axis = range(len(result["Close Series"]))
@@ -106,11 +106,10 @@ class TraderRecorder():
             result["Initial Money"],
             result["Update Time"],
             result["Model Version"],
-            self.getFromattedTime()
+            self._getFromattedTime()
         ]
 
-        self.recordToCSV(MODEL_RESULT_PATH, result["Model Description"], result["Stock Number"], row)
-        self.recordToCSV(STOCK_RESULT_PATH, result["Stock Number"], result["Model Description"], row)
-
+        self._recordToCSV(MODEL_RESULT_PATH, result["Model Description"], result["Stock Number"], row)
+        self._recordToCSV(STOCK_RESULT_PATH, result["Stock Number"], result["Model Description"], row)
         
-        self.recordToPNG(result)
+        self._recordToPNG(result)
