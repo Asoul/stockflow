@@ -2,6 +2,10 @@
 
 這是一個拿來跑各式各樣測試的股市模型控制流程，可以簡單的增加自己想要的模型並測試結果。接上我的另一個專案 [台灣上市上櫃股票爬蟲，含歷史資料](https://github.com/Asoul/tsec)，就可以簡單做到歷史資料模擬、隔日評估、即時預測等功能。
 
+## 起始設定
+
+下載完本專案後，可以把之前的 [tsec](https://github.com/Asoul/tsec) 專案用 `ln -s` 放到 `stockflow` 下，或者是更改 `ctrls/config.py` 裡面的 `TSEC_DATA_PATH` 至原本有下載過的 tsec 目錄。
+
 ## 主要流程邏輯
 
 ```python
