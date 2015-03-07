@@ -1,6 +1,6 @@
 # 股票分析程式 stockflow
 
-這是一個可以拿來跑各式各樣測試的股市模型控制流程，可以簡單的增加自己想要的模型並測試結果。接上我的另一個專案 [台灣上市上櫃股票爬蟲，含歷史資料](https://github.com/Asoul/tsec)，就可以簡單做到歷史資料模擬、隔日評估、即時預測等功能。
+這是一個拿來跑各式各樣測試的股市模型控制流程，可以簡單的增加自己想要的模型並測試結果。接上我的另一個專案 [台灣上市上櫃股票爬蟲，含歷史資料](https://github.com/Asoul/tsec)，就可以簡單做到歷史資料模擬、隔日評估、即時預測等功能。
 
 ## 主要流程邏輯
 
@@ -13,34 +13,6 @@ while True:
     model.update(row) # 更新 model
 traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 ```
-
-===================================
-
-## 常用功能
-
-有寫幾個常用功能的範例於檔案中，可以參考使用。
-
-- 預測明日趨勢用
-
-    - findTmrGood：可以根據自己設定的 Model 和指定時間至今的績效，找出明天要買的清單，
-    - getTmrHold：可以根據自己設定的 Model，找出現有清單中，明天該做的動作。
-
-- 預測當下趨勢用（把今日累計資料當成是最新一天的資料來給 Model 預測）
-
-    - findTmpGood：可以根據自己設定的 Model 和指定時間至今的績效，找出當下要買的清單，
-    - findTmpHold：可以根據自己設定的 Model，找出現有清單中，當下該做的動作。
-
-- 測試資料
-
-    - main：基本的範例格式
-    - runBenchMark：測試特定資料群組在特定年份中歷年的績效，和比較歷年績效。
-
-- 畫圖用
-
-    - drawSimple：一般收盤圖
-    - drawCandle：蠟燭圖
-
-===================================
 
 ## 基本控制元件
 
@@ -110,7 +82,7 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 - Methods
     - `draw(number, length = SIMPLE_FIG_LENGTH)`：`number` 是股票編號，`length` 是想要輸出的序列長度
 
-[](https://raw.githubusercontent.com/asoul/stockflow/master/demo/simple.png)
+![](https://raw.githubusercontent.com/asoul/stockflow/master/demo/simple.png)
 
 ### CandleDrawer
 
@@ -118,7 +90,7 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 - Methods
     - `draw(number, length = SIMPLE_FIG_LENGTH)`：`number` 是股票編號，`length` 是想要輸出的序列長度
 
-[](https://raw.githubusercontent.com/asoul/stockflow/master/demo/candle.png)
+![](https://raw.githubusercontent.com/asoul/stockflow/master/demo/candle.png)
 
 ### 參數設定
 
@@ -132,6 +104,30 @@ tester = Tester(numbers, exampleModel)# 使用測試元件
 tester.run()# 模擬
 ```
 
+## 常用功能
+
+有寫幾個常用功能的範例於檔案中，可以參考使用。
+
+- 預測明日趨勢用
+
+    - `findTmrGood`：可以根據自己設定的 Model 和指定時間至今的績效，找出明天要買的清單，
+    - `getTmrHold`：可以根據自己設定的 Model，找出現有清單中，明天該做的動作。
+
+- 預測當下趨勢用（把今日累計資料當成是最新一天的資料來給 Model 預測）
+
+    - `findTmpGood`：可以根據自己設定的 Model 和指定時間至今的績效，找出當下要買的清單，
+    - `findTmpHold`：可以根據自己設定的 Model，找出現有清單中，當下該做的動作。
+
+- 測試資料
+
+    - `main`：基本的範例格式
+    - `testThisYearTilNow`：測試今年至今的績效
+    - `runBenchMark`：測試特定資料群組在特定年份中歷年的績效，和比較歷年績效。
+
+- 畫圖用
+
+    - `drawSimple`：一般收盤圖
+    - `drawCandle`：蠟燭圖
 
 ===================================
 
