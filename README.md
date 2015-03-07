@@ -18,15 +18,15 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 ### Reader
 
-#### Spec
+#### [Spec]
 
 可以讀取 tsec 單隻股票的歷史資料
 
-#### Initialize
+#### [Initialize]
 
 `Reader(number)`：`number` 是股票編號
 
-#### Methods
+#### [Methods]
 
 `getInput()`：會回傳下一天的資料，自動把沒有交易的資料過濾掉，若沒有資料了則回傳 None
 
@@ -34,15 +34,15 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 ### Trader
 
-#### Spec
+#### [Spec]
 
 可以模擬交易，並輸出交易資訊分析
 
-#### Initialize
+#### [Initialize]
 
 `Trader(model_infos, stock_number)`：`model_infos` 是 Model 內建描述,`stock_number` 是股票編號
 
-#### Methods
+#### [Methods]
 
 `do(row, prediction)`：把 Reader 新讀的一行 row 和 Model 輸出的 prediction 來去做買賣
 
@@ -52,11 +52,11 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 ### TraderRecorder
 
-#### Spec
+#### [Spec]
 
 可以紀錄買賣的結果成 csv 檔、和把交易序列輸出成圖檔
 
-#### Methods
+#### [Methods]
 
 `record(result)`：把 Trader.analysis() 的結果輸出成檔案
 
@@ -64,11 +64,11 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 ### Tester
 
-#### Spec
+#### [Spec]
 
 可以測試 Model、預測明日趨勢、預測即時趨勢
 
-#### Methods
+#### [Methods]
 
 `run(mode = 'train', noLog = False, noRecord = False, dateFrom = None, dateTo = None, roiThr = -100, drawCandle = True)`：跑測試
 
@@ -83,15 +83,15 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 ### BenchMark
 
-#### Spec
+#### [Spec]
 
 可以測試指定股票清單和指定年份，做多年單隻股票的績效分析和同年不同模型的平均績效統計。
 
-#### Initialize
+#### [Initialize]
 
 `BenchMark(numbers, Model)`：`numbers` 是要測試的股票清單，`Model` 是一個可以用來輸出的 Model
 
-#### Methods
+#### [Methods]
 
 `run(noLog = False)`：開始測試，`noLog = True` 可以把螢幕輸出關掉
 
@@ -99,15 +99,15 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 ### BenchYearRecorder
 
-#### Spec
+#### [Spec]
 
 可以輸出 BenchMark 測試不同年份的結果，相同年份存在同一個檔案中。
 
-#### Initialize
+#### [Initialize]
 
 `BenchYearRecorder(model_infos, year)`：`model_infos` 是模型敘述，`year` 是年份
 
-#### Methods
+#### [Methods]
 
 `update(result)`：把每隻股票指定年份的結果更新
 
@@ -117,15 +117,15 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 ### BenchModelRecorder
 
-#### Spec
+#### [Spec]
 
 可以輸出 BenchMark 測試不同年份的結果，相同 Model 存在同一個檔案中。
 
-#### Initialize
+#### [Initialize]
 
 `BenchModelRecorder(model_infos, number)`：`number` 是股票編號，`model_infos` 是模型敘述
 
-#### Methods
+#### [Methods]
     
 `update(result)`：把每隻股票指定年份的結果更新
 
@@ -135,11 +135,11 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 ### SimpleDrawer
 
-#### Spec
+#### [Spec]
 
 可以輸出日收盤價的圖
 
-#### Methods
+#### [Methods]
 
 `draw(number, length = SIMPLE_FIG_LENGTH)`：`number` 是股票編號，`length` 是想要輸出的序列長度
 
@@ -149,9 +149,13 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 ### CandleDrawer
 
-- Spec：可以輸出日收盤價的圖
-- Methods
-    - `draw(number, length = SIMPLE_FIG_LENGTH)`：`number` 是股票編號，`length` 是想要輸出的序列長度
+#### [Spec]
+
+可以輸出日收盤價的圖
+
+#### [Methods]
+
+`draw(number, length = SIMPLE_FIG_LENGTH)`：`number` 是股票編號，`length` 是想要輸出的序列長度
 
 ![](https://raw.githubusercontent.com/asoul/stockflow/master/demo/candle.png)
 
@@ -160,14 +164,6 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 ### 參數設定
 
 參數設定都在 `ctrls/config.py` 中，可以設定輸出檔案位置、交易稅、起始金額等資料。
-
-## 簡單使用測試元件
-
-```python
-numbers = ['0050']# 股票編號
-tester = Tester(numbers, exampleModel)# 使用測試元件
-tester.run()# 模擬
-```
 
 ## 常用功能
 
@@ -178,7 +174,7 @@ tester.run()# 模擬
 - `findTmrGood`：可以根據自己設定的 Model 和指定時間至今的績效，找出明天要買的清單，
 - `getTmrHold`：可以根據自己設定的 Model，找出現有清單中，明天該做的動作。
 
-### 預測當下趨勢用（把今日累計資料當成是最新一天的資料來給 Model 預測）
+### 預測當下趨勢用（把今日累計資料當成是最新一天的資料）
 
 - `findTmpGood`：可以根據自己設定的 Model 和指定時間至今的績效，找出當下要買的清單，
 - `findTmpHold`：可以根據自己設定的 Model，找出現有清單中，當下該做的動作。
