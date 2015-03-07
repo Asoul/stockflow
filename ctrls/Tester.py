@@ -24,7 +24,7 @@ class Tester():
 
     def _printTrade(self, row, trade):
         print ('%s %s %d at %.2f, Money: %d, Stock: %d, Asset: %d, Rate: %.3f%%' % 
-            (row[0], trade['Act'], trade['Volume'], trade['Value'], 
+            (row[0], trade['Act'], trade['Volume'], round(trade['Value']/1000, 2), 
             trade['Money'], trade['Stock'], trade['Asset'], trade['Rate'])
         )
 
