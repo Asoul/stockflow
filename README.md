@@ -16,6 +16,24 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 ## 基本控制元件
 
+### Model
+
+#### [Spec]
+
+一個可以預測的模型，有放上 `exampleModel` 當成範例。
+
+#### [Methods]
+
+`update(row, trade = None)`：根據新的資料，和新的交易結果來做更新
+
+`predict()`：讓 model 預測下一步應該要怎麼做，模擬一個下單的過程，需要回傳一個 dictionary，包含：
+            
+- `Act`: `Buy`, `Sell` or `Nothing`
+- `Value`: 要下單的價格，0 代表用開盤價買
+- `Volume`: 要下單的量，0 代表能買多少盡量買
+
+========
+
 ### Reader
 
 #### [Spec]

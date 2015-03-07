@@ -19,7 +19,7 @@ class exampleModel():
         # 參數們
         self.infos = {
             "Model Description": "exampleModel",
-            "Update Time": '2015/03/05',
+            "Update Time": '2015/03/07',
             "Model Version": "1.0.0"
         }
 
