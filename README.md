@@ -203,4 +203,5 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 ## 我的其他專案
 
 [台灣上市上櫃股票爬蟲，含歷史資料](https://github.com/Asoul/tsec)
+
 [股票即時資料爬蟲](https://github.com/Asoul/tsrtc)
