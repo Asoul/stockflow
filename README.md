@@ -76,7 +76,7 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 #### [Methods]
 
-`record(result)`：把 Trader.analysis() 的結果輸出成檔案
+`record(result)`：把 Trader.analysis() 的結果輸出成檔案，可以看到圖片中紅點是 Model 買入點，藍點是賣出點，視覺化後一目了然，此外 `result` 中也有很多資料可以看。
 
 ![](https://raw.githubusercontent.com/asoul/stockflow/master/demo/trade-fig.png)
 
