@@ -82,7 +82,7 @@ class Trader():
         # 更新持有的股票數 x 一天
         self.hold_stock += self.stock
         # 更新股票占資產的比率序列
-        self.stockRate_series.append(float(self.close_series[-1] * self.stock)/asset)
+        self.stockRate_series.append(float(self.close_series[-1] * self.stock * 1000)/asset)
         
         # 更新買賣序列
         if action == 'Buy': self.trade_series.append(1)

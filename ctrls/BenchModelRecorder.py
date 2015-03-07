@@ -40,7 +40,7 @@ class BenchModelRecorder():
 
         if newFileFlag: cw.writerow(self._getModelHeader())
 
-        cw.writerow([self.number] + self.rois + [str(round(self.total_roi, 3)) + '%'])
+        cw.writerow([self.number] + self.rois + [str(round((self.total_roi-1)*100, 3)) + '%'])
 
         self.rois = []
         self.total_roi = 1.0

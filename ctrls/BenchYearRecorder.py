@@ -33,7 +33,7 @@ class BenchYearRecorder():
     def _getFromattedTime(self):
         '''回傳現在格式化的時間，ex. 2015/03/06 17:25:16 '''
         t = datetime.now()
-        return (str(t.year)+'/'+str(t.month).zfill(2)+'/'+'/'+str(t.day).zfill(2)+'/'+
+        return (str(t.year)+'/'+str(t.month).zfill(2)+'/'+'/'+str(t.day).zfill(2)+' '+
             str(t.hour).zfill(2)+':'+str(t.minute).zfill(2)+':'+str(t.second).zfill(2))
 
     def update(self, result):

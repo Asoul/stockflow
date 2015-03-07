@@ -64,7 +64,7 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 `do(row, prediction)`：把 Reader 新讀的一行 row 和 Model 輸出的 prediction 來去做買賣
 
-`analysis()`：輸出交易資訊結果分析
+`analysis()`：輸出交易資訊結果分析，包含很多東西不多加描述，可以直接 run 一次看看 result 裡多出什麼就知道了。
 
 ========
 
@@ -77,6 +77,10 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 #### [Methods]
 
 `record(result)`：把 Trader.analysis() 的結果輸出成檔案
+
+![](https://raw.githubusercontent.com/asoul/stockflow/master/demo/trade-fig.png)
+
+![](https://raw.githubusercontent.com/asoul/stockflow/master/demo/trade-fig2.png)
 
 ========
 
@@ -169,7 +173,7 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 #### [Spec]
 
-可以輸出日收盤價的圖
+可以輸出 K 線圖 + 布林通道 + 每日最高最低區間 + 量的圖
 
 #### [Methods]
 
