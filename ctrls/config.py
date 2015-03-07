@@ -28,12 +28,11 @@ MODEL_FIGURE_PATH = 'results/tradefig-model'
 
 # Benchmark 從民國 100 年開始測 
 BENCHMARK_YEAR_START = 100
+BENCHMARK_YEAR_END = 105
 
 # Benchmark 測試結果輸出位置
-BENCHMARK_PATH = 'results/benchmark'
-
-# Benchmark 測試結果分佈圖輸出位置
-BENCHMARK_DIST_PATH = 'results/dist-benchmark/'
+BENCHMARK_YEAR_PATH = 'results/benchmark-year'
+BENCHMARK_MODEL_PATH = 'results/benchmark-model'
 
 # Testalldata 從 100 年開始測
 TESTALLDATA_YEAR_START = 100

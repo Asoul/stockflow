@@ -53,10 +53,10 @@ class CandleDrawer():
             # matplotlib 的 candlestick_ohlc 依序放入 [編號, 收盤, 最高, 最低, 開盤] 會畫出 K 線圖
             candle_sticks.append((
                 i,
-                result["Close Series"],
-                result["High Series"],
-                result["Low Series"],
-                result["Open Series"]
+                result["Close Series"][i],
+                result["High Series"][i],
+                result["Low Series"][i],
+                result["Open Series"][i]
             ))
             
         bool_up_series, ma_series, bool_down_series = self.getBooleanBand(result["Close Series"])
@@ -66,9 +66,9 @@ class CandleDrawer():
         
         fig, axarr = plt.subplots(2, sharex=True)
 
-        candlestick_ohlc(axarr[0], quotes[-CANDLE_FIG_LENGTH:], width=CANDLE_STICK_WIDTH)
+        candlestick_ohlc(axarr[0], candle_sticks[-CANDLE_FIG_LENGTH:], width=CANDLE_STICK_WIDTH)
         
-        x_axis = range(len(quotes))
+        x_axis = range(len(result["Close Series"]))
         # set zorder 讓 candlestick 可以在上面
         axarr[0].plot(x_axis[-CANDLE_FIG_LENGTH:], ma_series[-CANDLE_FIG_LENGTH:], c='#00ff00', ls='-', lw=default_line_width, zorder=-5)
         axarr[0].plot(x_axis[-CANDLE_FIG_LENGTH:], bool_up_series[-CANDLE_FIG_LENGTH:], c='#ff0000', ls='-', lw=default_line_width, zorder=-4)

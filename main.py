@@ -9,7 +9,7 @@ from models.exampleModel import exampleModel
 
 def main():
     
-    numbers = ['1301']# 股票編號
+    numbers = ['0050']# 股票編號
     tester = Tester(numbers, exampleModel)# 使用測試元件
     tester.run()# 模擬
 

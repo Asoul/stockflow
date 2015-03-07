@@ -3,22 +3,16 @@
 
 import csv
 import json
-from config import *
 import requests
+from ctrls import *
+from config import *
 from os import listdir
-from Reader import Reader
-from Trader import Trader
-from datetime import date, timedelta
-from TraderRecorder import TraderRecorder
-from CandleDrawer import CandleDrawer
 
 class Tester():
     '''To Test models'''
-    # 輸入 model, target year, 要不要輸出圖檔, 要不要輸出 csv 檔, 股票清單, 要不要每日交易資訊, 交易模式
-    # 輸出 csv 檔, 圖片(用 Drawer), 計算ROI的年份
 
     def __init__(self, numbers, Model):
-        # check the number from Database
+        # check the number from Database, remove error numbers
         tsecNumbers = [ n[:-4] for n in listdir(TSEC_DATA_PATH) if n[-4:] == '.csv' ]
         for number in numbers:
             if number not in tsecNumbers:
@@ -27,9 +21,9 @@ class Tester():
         self.numbers = numbers
         self.Model = Model
 
-    def printTrade(self, trade):
-        print ('Day %d, %s %d at %.2f, Money: %d, Stock: %d, Asset: %d, Rate: %.3f%%' % 
-            (trade['Day'], trade['Act'], trade['Volume'], trade['Value'], 
+    def printTrade(self, row, trade):
+        print ('%s %s %d at %.2f, Money: %d, Stock: %d, Asset: %d, Rate: %.3f%%' % 
+            (row[0], trade['Act'], trade['Volume'], trade['Value'], 
             trade['Money'], trade['Stock'], trade['Asset'], trade['Rate'])
         )
 
@@ -49,26 +43,26 @@ class Tester():
                         int(row[0].split('/')[2]))
 
         if dateFrom and (data_day - dateFrom).days < 0:
-            return False
-        elif dateTo and (data_day - dateTo).days > 0:
-            return False
-        else:
             return True
+        elif dateTo and (data_day - dateTo).days > 0:
+            return True
+        else:
+            return False
 
     def run(self, mode = 'train', noLog = False, noRecord = False, dateFrom = None, dateTo = None, roiThr = -100, drawCandle = True):
-        '''noLog 和 noRecord 只對 train 模式有用，其他模式一律預設不會輸出，
-            drawCandle 預設是 True，
         '''
-        # tmpFlag 會用 api 抓最新資料
-        if mode == 'tmpGood' or mode == 'tmpHold': tmpFlag = True
-        else: tmpFlag = False
-
-        # Run for each stock number
+            noLog 和 noRecord 只對 train 模式有用，其他模式一律預設不會輸出，
+            drawCandle 只對非 train 模式有用，避免一次輸出太多圖檔，跑得很慢
+        '''
         for number in self.numbers:
 
             reader = Reader(number)
             model = self.Model()
             trader = Trader(model.infos, number)
+
+            # tmpFlag 會用 api 抓最新資料
+            if mode == 'tmpGood' or mode == 'tmpHold': tmpFlag = True
+            else: tmpFlag = False
             
             while True:
                 row = reader.getInput()
@@ -88,7 +82,8 @@ class Tester():
                     trade = trader.do(row, prediction)
                     model.update(row, trade)
 
-                    if mode == 'train' and not noLog and trade['Volume'] != 0: self.printTrade(trade)
+                    if mode == 'train' and not noLog and trade['Volume'] != 0:
+                        self.printTrade(row, trade)
             
             result = trader.analysis()
 
@@ -96,11 +91,20 @@ class Tester():
                 tr = TraderRecorder()
                 tr.record(result)
 
-            elif result["ROI"] > roiThr:
-                print last_row[0], number, ' at ', float(last_row[6]), '該買囉, ROI 累計：', result["ROI"], '%'
-                if drawCandle:
-                    CandleDrawer().draw(result)
+            elif mode == 'tmpGood' or mode == 'tmrGood':
 
-            
+                # Model 預測出要買，而且指定時間內累計 ROI 高於 ROI Threshold
+                if prediction["Act"] == 'Buy' and result["ROI"] > roiThr:
+                    print last_row[0], number, ' at ', float(last_row[6]), '該買囉, ROI 累計：', result["ROI"], '%'
+                    
+                    # 預設買前看一下 CandleStick 確定一下
+                    if drawCandle: CandleDrawer().draw(result)
 
-        
+            elif mode == 'tmpHold' or mode == 'tmrHold':
+                if prediction["Act"] == 'Sell':
+                    print last_row[0], number, ' at ', float(last_row[6]), '該賣囉, ROI 累計：', result["ROI"], '%'
+                elif prediction["Act"] == 'Nothing':
+                    print last_row[0], number, ' at ', float(last_row[6]), '不要動, ROI 累計：', result["ROI"], '%'
+
+                # 做操作前看一下 CandleStick 確定一下
+                if drawCandle: CandleDrawer().draw(result)

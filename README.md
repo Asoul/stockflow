@@ -87,6 +87,7 @@ traderRecorder.record(trader.analysis()) # 把分析記錄下來
 10. 把 tsrtc 接上
 11. range to xrange
 12. path 那邊要改成都可以改的  RESULT ..
+13. 想要用戶可以改的放 config 就好
 
 ## 控制流程局限性
 

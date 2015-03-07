@@ -192,11 +192,11 @@ class Trader():
 
             # 時間序列
             "Date Series": self.date_series,
-            "Value Series": self.close_series,
-            "High Series": self.high_series,
-            "Low Series": self.low_series,
-            "Open Series": self.open_series,
             "Quant Series": self.quant_series,
+            "Open Series": self.open_series,
+            "High Series": self.high_series,
+            "Close Series": self.close_series,
+            "Low Series": self.low_series,
             "Trade Series": self.trade_series,
             "Buy Series": buy_series,
             "Sell Series": sell_series,
@@ -210,12 +210,12 @@ class Trader():
             # 交易次數資訊
             "Buy Count": self.trade_series.count(1),
             "Sell Count": self.trade_series.count(-1),
-            "Trade Count": len(self.trade_series) - self.trade_series.count(0),
+            "Trade Count": trade_count,
             
             # 報酬
             "ROI": (ROI-1)*100,
             "Weekly ROI": (ROI**(float(5)/days) - 1)*100 if days != 0 else 0.0,
-            "ROI Per Trade": (ROI**(2.0/(len(self.trade_series) - self.trade_series.count(0)))-1)*100 if len(self.trade_series) != self.trade_series.count(0) else 0.0,
+            "ROI Per Trade": (ROI**(2.0/(trade_count))-1)*100 if trade_count else 0.0,
             
             # 風險
             "Daily Risk": day_risks,

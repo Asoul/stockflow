@@ -5,7 +5,7 @@ import numpy as np
 
 class exampleModel():
     
-    def __init__(self, argv = []):
+    def __init__(self):
         # 紀錄序列
         self.value_series = []
 
@@ -18,12 +18,10 @@ class exampleModel():
         self.value_ma = [0.0 for x in xrange(121)]  # the value ma(x) series
 
         # 參數們
-        variables = [[]]
         self.infos = {
             "Model Description": "exampleModel",
             "Update Time": '2015/03/05',
-            "Model Version": "1.0.0",
-            "Recommend Variables": variables
+            "Model Version": "1.0.0"
         }
 
     def update(self, row, trade = None):

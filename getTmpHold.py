@@ -8,9 +8,9 @@ from models.exampleModel import exampleModel
 
 def main():
 
-    numbers = [ line.strip() for line in open('stocknumber.csv', 'rb') ]
+    numbers = [ '1101', '0050' ]
     tester = Tester(numbers, exampleModel)
-    tester.run( mode = 'tmpGood', dateFrom = date(2015,1,1))
+    tester.run( mode = 'tmpHold', dateFrom = date(2015,1,1))
 
 if __name__ == '__main__':
     sys.exit(main())

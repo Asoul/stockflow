@@ -58,9 +58,9 @@ class TraderRecorder():
     def recordToPNG(self, result):
         '''輸出買賣過程的圖檔，以當天收盤價當作約略的點，紅色的三角形是買入，藍色正方形是賣出'''
         # 輸出買賣圖檔
-        x_axis = range(len(result["Value Series"]))
+        x_axis = range(len(result["Close Series"]))
         
-        plt.plot(x_axis, result["Value Series"], c='#000000', ls='-', lw=0.2)
+        plt.plot(x_axis, result["Close Series"], c='#000000', ls='-', lw=0.2)
         plt.plot(x_axis, result["Buy Series"], c='#ff0000', marker='o', ms=5, alpha=0.5)
         plt.plot(x_axis, result["Sell Series"], c='#0000ff', marker='s', ms=5, alpha=0.5)
 
