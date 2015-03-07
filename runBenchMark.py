@@ -4,7 +4,6 @@
 '''可以測試一個 Model 在特定的清單中歷年表現如何'''
 
 import sys
-from datetime import date
 from ctrls.BenchMark import BenchMark
 from models.exampleModel import exampleModel
 
