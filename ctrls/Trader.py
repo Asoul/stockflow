@@ -122,6 +122,10 @@ class Trader():
             value = self.open_series[-1] * 1000 # 一張的價錢
         elif pred["Value"] <= self.high_series[-1] and pred["Value"] >= self.low_series[-1]:# 用自訂的金額買賣
             value = pred["Value"] * 1000 # 一張的價錢
+        elif pred["Act"] == 'Buy' and pred["Value"] > self.high_series[-1]:
+            value = self.high_series[-1] * 1000
+        elif pred["Act"] == 'Sell' and pred["Value"] < self.low_series[-1]:
+            value = self.low_series[-1] * 1000
         else:
             return self._updateAndreturnInfo('Nothing', 0, 0)
 
