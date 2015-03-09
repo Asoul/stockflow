@@ -85,8 +85,8 @@ class Trader():
         self.stockRate_series.append(float(self.close_series[-1] * self.stock * 1000)/asset)
         
         # 更新買賣序列
-        if action == 'Buy': self.trade_series.append(1)
-        elif action == 'Sel': self.trade_series.append(-1)
+        if action == 'Buy' and volume > 0: self.trade_series.append(1)
+        elif action == 'Sel' and volume > 0: self.trade_series.append(-1)
         else: self.trade_series.append(0)
         
         return {
@@ -137,6 +137,9 @@ class Trader():
                 min_unit = int(STOCK_MIN_FEE / (value * STOCK_FEE)) # 至少要多少張才會超過最低手續費
                 volume = int(self.money/(value * (1 + STOCK_FEE)))
 
+                if volume == 0:
+                    return self._updateAndreturnInfo('Nothing', 0, 0)
+                    
                 # 如果剛好卡在最低手續費而算起來會超過金額
                 if volume < min_unit and volume * value * (1 + STOCK_FEE) < self.money:
                     volume = int((self.money - STOCK_MIN_FEE)/value)

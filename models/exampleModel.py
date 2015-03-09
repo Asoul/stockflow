@@ -34,6 +34,7 @@ class exampleModel():
         if trade and trade["Volume"] != 0:# 有交易
             if trade["Act"] == 'Buy':
                 self.haveStock += trade["Volume"]
+                self.buyValue = float(trade["Value"])/1000
             else:
                 self.haveStock -= trade["Volume"]
 
