@@ -4,6 +4,7 @@
 import csv
 import numpy as np
 from config import *
+import math
 
 class Trader():
     '''模擬交易情形的過程，買賣最小單位為張'''
@@ -74,6 +75,21 @@ class Trader():
 
         return risks
 
+    def _autoCorrectPrice(self, price):
+        if price >= 1000:
+            price = math.floor(price / 5) * 5
+        elif price >= 500:
+            price = math.floor(price)
+        elif price >= 100:
+            price = math.floor(price * 2)/2
+        elif price >= 50:
+            price = math.floor(price * 10)/10
+        elif price >= 10:
+            price = math.floor(price * 20)/20
+        else:
+            price = math.floor(price * 100)/100
+        return price
+
     def _updateAndreturnInfo(self, action, value, volume):
         # 更新資產：最後才更新因為買賣會扣手續費
         asset = int(self.close_series[-1] * self.stock * 1000+ self.money)
@@ -121,7 +137,7 @@ class Trader():
         if pred["Value"] == 0:# 使用開盤價買賣
             value = self.open_series[-1] * 1000 # 一張的價錢
         elif pred["Value"] <= self.high_series[-1] and pred["Value"] >= self.low_series[-1]:# 用自訂的金額買賣
-            value = pred["Value"] * 1000 # 一張的價錢
+            value = self._autoCorrectPrice(pred["Value"]) * 1000 # 一張的價錢
         elif pred["Act"] == 'Buy' and pred["Value"] > self.high_series[-1]:
             value = self.high_series[-1] * 1000
         elif pred["Act"] == 'Sell' and pred["Value"] < self.low_series[-1]:
