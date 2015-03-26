@@ -78,9 +78,18 @@ class Tester():
                 if (dateFrom or dateTo) and self._notInPeriod(row, dateFrom, dateTo):
                     model.update(row, None)
                 else:
-                    prediction = model.predict()
-                    trade = trader.do(row, prediction)
+                    # 開盤現買
+                    prediction = model.predict('start', float(row[3]))
+                    trade = trader.do(row, prediction, 'start')
+                    
+                    if mode == 'train' and not noLog and trade['Volume'] != 0:
+                        self._printTrade(row, trade)
+                    # 盤中 update
                     model.update(row, trade)
+
+                    # 快收盤的買
+                    prediction = model.predict('end', float(row[6]))
+                    trade = trader.do(row, prediction, 'end')
 
                     if mode == 'train' and not noLog and trade['Volume'] != 0:
                         self._printTrade(row, trade)

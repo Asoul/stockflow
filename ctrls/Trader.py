@@ -34,8 +34,8 @@ class Trader():
         self.stockRate_series = []# 股票佔資產比率
 
         # 計算股票平均持有天數
-        self.hold_stock = 0 #股票持有天數 x 股票數
-        self.buyed_stock = 0 #曾持有的股票數
+        self.stock_series = [] #股票持有的股票數序列
+        self.buyed_stock_series = [] #曾持有的股票數序列
 
         # TODO: 實作 quant Limit
         self.noQuantLimit = noQuantLimit
@@ -90,20 +90,32 @@ class Trader():
             price = math.floor(price * 100)/100
         return price
 
-    def _updateAndreturnInfo(self, action, value, volume):
+    def _updateAndreturnInfo(self, action, value, volume, when):
         # 更新資產：最後才更新因為買賣會扣手續費
         asset = int(self.close_series[-1] * self.stock * 1000+ self.money)
         self.asset_series.append(asset)
 
-        # 更新持有的股票數 x 一天
-        self.hold_stock += self.stock
-        # 更新股票占資產的比率序列
-        self.stockRate_series.append(float(self.close_series[-1] * self.stock * 1000)/asset)
+        if when == 'start':
+            self.todayVolume = 0# 每天開始前先歸零，計算當沖量
         
-        # 更新買賣序列
-        if action == 'Buy' and volume > 0: self.trade_series.append(1)
-        elif action == 'Sel' and volume > 0: self.trade_series.append(-1)
-        else: self.trade_series.append(0)
+        if action == 'Buy':
+            self.todayVolume += volume
+        elif action == 'Sel':
+            self.todayVolume -= volume
+
+        if when == 'end':# 一天結束了
+            
+            # 更新持有的股票數
+            self.buyed_stock_series.append(self.todayVolume) # 買過的股票數
+            self.stock_series.append(self.stock)
+            
+            # 更新股票占資產的比率序列
+            self.stockRate_series.append(float(self.close_series[-1] * self.stock * 1000)/asset)
+        
+            # 更新買賣序列
+            if self.todayVolume > 0: self.trade_series.append(1)
+            elif self.todayVolume < 0: self.trade_series.append(-1)
+            else: self.trade_series.append(0)
         
         return {
             'Day': len(self.close_series),
@@ -116,35 +128,7 @@ class Trader():
             'Rate': (float(asset)/TRADER_INIT_MONEY)*100
         }
 
-    def do(self, row, pred):
-        '''更新資訊並做交易，row 是新的一份資料，pred 是 model 傳來想要買或賣的資料'''
-
-        # 更新資料
-        self.date_series.append(row[0])
-        self.quant_series.append(float(row[1]))
-        self.open_series.append(float(row[3]))
-        self.high_series.append(float(row[4]))
-        self.low_series.append(float(row[5]))
-        self.close_series.append(float(row[6]))
-
-        # todayQuant = float(row[1]) # TODO: 實作量的限制
-
-        # 沒有操作、先擋掉 Volume 小於 0 的錯誤
-        if (pred["Act"] != "Buy" and pred["Act"] != "Sell") or pred["Volume"] < 0:
-            return self._updateAndreturnInfo('Nothing', 0, 0)
-
-        # 操作價位
-        if pred["Value"] == 0:# 使用開盤價買賣
-            value = self.open_series[-1] * 1000 # 一張的價錢
-        elif pred["Value"] <= self.high_series[-1] and pred["Value"] >= self.low_series[-1]:# 用自訂的金額買賣
-            value = self._autoCorrectPrice(pred["Value"]) * 1000 # 一張的價錢
-        elif pred["Act"] == 'Buy' and pred["Value"] > self.high_series[-1]:
-            value = self.high_series[-1] * 1000
-        elif pred["Act"] == 'Sell' and pred["Value"] < self.low_series[-1]:
-            value = self.low_series[-1] * 1000
-        else:
-            return self._updateAndreturnInfo('Nothing', 0, 0)
-
+    def _transact(self, pred, value, when):
         # 操作動作
         if pred["Act"] == "Buy":
             # 操作數量
@@ -154,7 +138,7 @@ class Trader():
                 volume = int(self.money/(value * (1 + STOCK_FEE)))
 
                 if volume == 0:
-                    return self._updateAndreturnInfo('Nothing', 0, 0)
+                    return self._updateAndreturnInfo('Nothing', 0, 0, when)
                     
                 # 如果剛好卡在最低手續費而算起來會超過金額
                 if volume < min_unit and volume * value * (1 + STOCK_FEE) < self.money:
@@ -168,13 +152,12 @@ class Trader():
                 total_cost = volume * value + max(STOCK_MIN_FEE, volume * value * STOCK_FEE)
 
                 if total_cost > self.money:
-                    return self._updateAndreturnInfo('Nothing', 0, 0)
+                    return self._updateAndreturnInfo('Nothing', 0, 0, when)
 
             self.money -= total_cost # 扣除股票費和手續費
             self.stock += volume # 持有股票數
-            self.buyed_stock += volume # 買過的股票數
 
-            return self._updateAndreturnInfo('Buy', value, volume)
+            return self._updateAndreturnInfo('Buy', value, volume, when)
             
         elif pred["Act"] == "Sell":
 
@@ -187,7 +170,44 @@ class Trader():
             self.money += int(value * volume * (1 - STOCK_FEE - STOCK_TAX))
             self.stock -= volume
 
-            return self._updateAndreturnInfo('Sel', value, volume)
+            return self._updateAndreturnInfo('Sel', value, volume, when)
+        else:
+            return self._updateAndreturnInfo('Nothing', 0, 0, when)
+
+    def do(self, row, pred, when='end'):
+        '''更新資訊並做交易，row 是新的一份資料，pred 是 model 傳來想要買或賣的資料'''
+        if when == 'start':
+            # 更新資料
+            self.date_series.append(row[0])
+            self.quant_series.append(float(row[1]))
+            self.open_series.append(float(row[3]))
+            self.high_series.append(float(row[4]))
+            self.low_series.append(float(row[5]))
+            self.close_series.append(float(row[6]))
+            # todayQuant = float(row[1]) # TODO: 實作量的限制
+
+            # 沒有操作、先擋掉 Volume 小於 0 的錯誤
+            if (pred["Act"] != "Buy" and pred["Act"] != "Sell") or pred["Volume"] < 0:
+                return self._updateAndreturnInfo('Nothing', 0, 0, when)
+
+            # 操作價位
+            if pred["Value"] == 0:# 使用開盤價買賣
+                value = self.open_series[-1] * 1000 # 一張的價錢
+            elif pred["Value"] <= self.high_series[-1] and pred["Value"] >= self.low_series[-1]:# 用自訂的金額買賣
+                value = self._autoCorrectPrice(pred["Value"]) * 1000 # 一張的價錢
+            elif pred["Act"] == 'Buy' and pred["Value"] > self.high_series[-1]:
+                value = self.high_series[-1] * 1000
+            elif pred["Act"] == 'Sell' and pred["Value"] < self.low_series[-1]:
+                value = self.low_series[-1] * 1000
+            else:
+                return self._updateAndreturnInfo('Nothing', 0, 0, when)
+
+        elif when == 'end':
+            # 盤尾交易只能用當下的收盤價（假裝是定盤交易）
+            value = self.close_series[-1]
+
+        return self._transact(pred, value, when)
+            
     
     def analysis(self):
         '''回傳總交易資訊分析'''
@@ -224,9 +244,12 @@ class Trader():
             
             # 錢和股票
             "Initial Money": TRADER_INIT_MONEY,
-            "Stock / Asset Rate": np.mean(self.stockRate_series) if len(self.stockRate_series) > 0 else 0.0,
-            "Stock / Asset Change Std": np.std(self.stockRate_series) if len(self.stockRate_series) > 0 else 0.0,
-            "Stock-Hold Day": float(self.hold_stock)/self.buyed_stock if self.buyed_stock != 0 else 0,
+            "Stock / Asset Rate": np.mean(self.stockRate_series) \
+                                   if len(self.stockRate_series) > 0 else 0.0,
+            "Stock / Asset Change Std": np.std(self.stockRate_series) \
+                                   if len(self.stockRate_series) > 0 else 0.0,
+            "Stock-Hold Day": float(sum(self.stock_series))/sum(self.buyed_stock_series) \
+                                if sum(self.buyed_stock_series) != 0 else 0,
 
             # 交易次數資訊
             "Buy Count": self.trade_series.count(1),
