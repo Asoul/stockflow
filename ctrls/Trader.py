@@ -106,7 +106,10 @@ class Trader():
         if when == 'end':# 一天結束了
             
             # 更新持有的股票數
-            self.buyed_stock_series.append(self.todayVolume) # 買過的股票數
+            if self.todayVolume > 0:
+                self.buyed_stock_series.append(self.todayVolume) # 買過的股票數
+            else:
+                self.buyed_stock_series.append(0)
             self.stock_series.append(self.stock)
             
             # 更新股票占資產的比率序列

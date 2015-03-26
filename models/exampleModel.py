@@ -51,6 +51,10 @@ class exampleModel():
             Volume: 要下單的量，0 代表能買多少盡量買
         '''
         if when == 'start':
+            '''
+            when = start 是開盤時，可以決定要不要下單，可以用當下的開盤價買賣，
+            或下單在整天中如果有價格符合下單的條件，就會交易
+            '''
             if len(self.value_series) == 0:
                 return {"Act": "Nothing", "Value": 0, "Volume": 0}
             elif self.haveStock == 0 and(# 沒有持有的情況
@@ -75,6 +79,9 @@ class exampleModel():
             else:
                 return {"Act": "Nothing", "Value": 0, "Volume": 0}
         elif when == 'end':
+            '''
+            when = end 是收盤時，可以決定要不要下單，只能用當下的開盤價買賣
+            '''
             return {"Act": "Nothing", "Value": 0, "Volume": 0}
         else:
             return {"Act": "Nothing", "Value": 0, "Volume": 0}

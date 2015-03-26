@@ -85,7 +85,7 @@ class Tester():
                     if mode == 'train' and not noLog and trade['Volume'] != 0:
                         self._printTrade(row, trade)
                     # 盤中 update
-                    model.update(row, trade, 'end')
+                    model.update(row, trade, 'start')
 
                     # 快收盤的買
                     prediction = model.predict('end', float(row[6]))
@@ -94,7 +94,7 @@ class Tester():
                     if mode == 'train' and not noLog and trade['Volume'] != 0:
                         self._printTrade(row, trade)
 
-                    # 盤中 update
+                    # 盤末 update
                     model.update(row, trade, 'end')
             
             result = trader.analysis()

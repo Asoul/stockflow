@@ -31,8 +31,6 @@ class BenchMark():
         for year in self.years:
             benchYearRecorders[year] = BenchYearRecorder(self.Model().infos, year)
 
-        
-
         for number in self.numbers:
 
             benchModelRecorder = BenchModelRecorder(self.Model().infos, number)
@@ -50,14 +48,26 @@ class BenchMark():
                     row = reader.getInput()
                     if row == None: break
                     
-                    prediction = model.predict()
                     data_year = int(row[0].split('/')[0])
 
                     if data_year > year: break
                     elif data_year == year:
-                        trade = trader.do(row, prediction)
-                        model.update(row, trade)
-                    else: model.update(row, None)
+                        
+                        prediction = model.predict('start', float(row[3]))
+                        trade = trader.do(row, prediction, 'start')
+
+                        # 盤中 update
+                        model.update(row, trade, 'start')
+
+                        # 快收盤的買
+                        prediction = model.predict('end', float(row[6]))
+                        trade = trader.do(row, prediction, 'end')
+
+                        # 盤末 update
+                        model.update(row, trade, 'end')    
+                    else:
+                        # 只要盤末 update 就好
+                        model.update(row, None, 'end')                    
 
                 result = trader.analysis()
 
