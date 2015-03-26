@@ -100,7 +100,7 @@ class Trader():
         
         if action == 'Buy':
             self.todayVolume += volume
-        elif action == 'Sel':
+        elif action == 'Sell':
             self.todayVolume -= volume
 
         if when == 'end':# 一天結束了
@@ -170,11 +170,11 @@ class Trader():
             self.money += int(value * volume * (1 - STOCK_FEE - STOCK_TAX))
             self.stock -= volume
 
-            return self._updateAndreturnInfo('Sel', value, volume, when)
+            return self._updateAndreturnInfo('Sell', value, volume, when)
         else:
             return self._updateAndreturnInfo('Nothing', 0, 0, when)
 
-    def do(self, row, pred, when='end'):
+    def do(self, row, pred, when):
         '''更新資訊並做交易，row 是新的一份資料，pred 是 model 傳來想要買或賣的資料'''
         if when == 'start':
             # 更新資料
@@ -203,8 +203,11 @@ class Trader():
                 return self._updateAndreturnInfo('Nothing', 0, 0, when)
 
         elif when == 'end':
-            # 盤尾交易只能用當下的收盤價（假裝是定盤交易）
-            value = self.close_series[-1]
+            if (pred["Act"] != "Buy" and pred["Act"] != "Sell") or pred["Volume"] < 0:
+                return self._updateAndreturnInfo('Nothing', 0, 0, when)
+            else:
+                # 盤尾交易只能用當下的收盤價（假裝是定盤交易）
+                value = self.close_series[-1]
 
         return self._transact(pred, value, when)
             

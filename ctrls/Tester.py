@@ -24,7 +24,7 @@ class Tester():
 
     def _printTrade(self, row, trade):
         print ('%s %s %d at %.2f, Money: %d, Stock: %d, Asset: %d, Rate: %.3f%%' % 
-            (row[0], trade['Act'], trade['Volume'], round(trade['Value']/1000, 2), 
+            (row[0], trade['Act'][:3], trade['Volume'], round(trade['Value']/1000, 2), 
             trade['Money'], trade['Stock'], trade['Asset'], trade['Rate'])
         )
 
@@ -85,7 +85,7 @@ class Tester():
                     if mode == 'train' and not noLog and trade['Volume'] != 0:
                         self._printTrade(row, trade)
                     # 盤中 update
-                    model.update(row, trade)
+                    model.update(row, trade, 'end')
 
                     # 快收盤的買
                     prediction = model.predict('end', float(row[6]))
@@ -93,6 +93,9 @@ class Tester():
 
                     if mode == 'train' and not noLog and trade['Volume'] != 0:
                         self._printTrade(row, trade)
+
+                    # 盤中 update
+                    model.update(row, trade, 'end')
             
             result = trader.analysis()
 

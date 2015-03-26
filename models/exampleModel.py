@@ -19,16 +19,18 @@ class exampleModel():
         # 參數們
         self.infos = {
             "Model Description": "exampleModel",
-            "Update Time": '2015/03/07',
-            "Model Version": "1.0.0"
+            "Update Time": '2015/03/26',
+            "Model Version": "2.0.0"
         }
 
-    def update(self, row, trade = None):
-        self.value_series.append(float(row[6]))
+    def update(self, row, trade, when):
 
-        # Simple Moving Average
-        for i in [20, 60]:
-            self.value_ma[i] = np.mean(self.value_series[-min(i, len(self.value_series)):])
+        if when == 'end':
+            self.value_series.append(float(row[6]))
+
+            # Simple Moving Average
+            for i in [20, 60]:
+                self.value_ma[i] = np.mean(self.value_series[-min(i, len(self.value_series)):])
 
         # 交易資訊
         if trade and trade["Volume"] != 0:# 有交易

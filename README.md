@@ -12,9 +12,17 @@
 while True:
     row = reader.getInput() # Reader 讀新的資料
     if row == None: break # 讀不到就 Stop    
-    prediction = model.predict() # Model 做下單預測
-    trade = trader.do(row, prediction) # Trader 做買賣
-    model.update(row) # 更新 model
+
+    prediction = model.predict('start', float(row[3]))#決定開盤要不要買賣
+    trade = trader.do(row, prediction, 'start')
+    
+    # 盤中 update
+    model.update(row, trade)
+
+    # 快收盤的買賣
+    prediction = model.predict('end', float(row[6]))
+    trade = trader.do(row, prediction, 'end')
+
 traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 ```
 
@@ -30,7 +38,7 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 `update(row, trade = None)`：根據新的資料，和新的交易結果來做更新
 
-`predict()`：讓 model 預測下一步應該要怎麼做，模擬一個下單的過程，需要回傳一個 dictionary，包含：
+`predict(when, value)`：讓 model 預測下一步應該要怎麼做，模擬一個下單的過程。when 是 'start' 或 'end'，value 是開盤價或收盤價。需要回傳一個 dictionary，包含：
             
 - `Act`: `Buy`, `Sell` or `Nothing`
 - `Value`: 要下單的價格，0 代表用開盤價買
@@ -66,7 +74,7 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 #### [Methods]
 
-`do(row, prediction)`：把 Reader 新讀的一行 row 和 Model 輸出的 prediction 來去做買賣
+`do(row, prediction, when)`：把 Reader 新讀的一行 row 和 Model 輸出的 prediction 來去做買賣，when 是 'start' 或 'end'
 
 `analysis()`：輸出交易資訊結果分析，包含很多東西不多加描述，可以直接 run 一次看看 result 裡多出什麼就知道了。
 
@@ -224,7 +232,7 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 有 Bug 麻煩跟我說：`azx754@gmail.com`
 
-最後更新時間：`2015/03/07`
+最後更新時間：`2015/03/26`
 
 ## LICENSE
 
