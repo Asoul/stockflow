@@ -210,7 +210,7 @@ class Trader():
                 return self._updateAndreturnInfo('Nothing', 0, 0, when)
             else:
                 # 盤尾交易只能用當下的收盤價（假裝是定盤交易）
-                value = self.close_series[-1]
+                value = self.close_series[-1] * 1000
 
         return self._transact(pred, value, when)
             
