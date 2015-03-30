@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from config import *
+from settings import *
 from datetime import datetime
 from ctrls.Reader import Reader
 import matplotlib.pyplot as plt

@@ -1,7 +1,7 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
 
-from config import *
+from settings import *
 from os.path import join
 from datetime import datetime
 from ctrls.Reader import Reader

@@ -1,6 +1,6 @@
 __all__ = ['Trader', 'Reader', 'TraderRecorder', 'CandleDrawer', 'BenchYearRecorder', 'BenchModelRecorder']
 
-from config import *
+from settings import *
 from Reader import Reader
 from Trader import Trader
 from CandleDrawer import CandleDrawer

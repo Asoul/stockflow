@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import csv
-from config import *
+from settings import *
 from os.path import join
 
 class Reader():

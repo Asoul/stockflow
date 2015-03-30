@@ -5,7 +5,7 @@ import csv
 import json
 import requests
 from ctrls import *
-from config import *
+from settings import *
 from os import listdir
 from datetime import date
 

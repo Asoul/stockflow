@@ -4,7 +4,7 @@
 import sys
 import csv
 from ctrls import *
-from config import *
+from settings import *
 from os import listdir
 from os.path import isfile, join
 

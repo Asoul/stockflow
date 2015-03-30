@@ -4,7 +4,7 @@
 import os
 import csv
 import numpy as np
-from config import *
+from settings import *
 from datetime import datetime
 import matplotlib.pyplot as plt
 from os.path import isfile, join, isdir

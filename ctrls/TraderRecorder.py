@@ -3,7 +3,7 @@
 
 import os
 import csv
-from config import *
+from settings import *
 from datetime import datetime
 import matplotlib.pyplot as plt
 from os.path import isfile, join, isdir

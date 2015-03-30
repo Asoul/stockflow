@@ -4,7 +4,7 @@
 
 ## 起始設定
 
-下載完本專案後，可以把之前的 [tsec](https://github.com/Asoul/tsec) 專案用 `ln -s` 放到 `stockflow` 下，或者是更改 `ctrls/config.py` 裡面的 `TSEC_DATA_PATH` 至原本有下載過的 tsec 目錄。
+下載完本專案後，可以把之前的 [tsec](https://github.com/Asoul/tsec) 專案用 `ln -s` 放到 `stockflow` 下，或者是更改 `ctrls/settings.py` 裡面的 `TSEC_DATA_PATH` 至原本有下載過的 tsec 目錄。
 
 ## 主要流程邏輯
 
@@ -197,7 +197,7 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 ### 參數設定
 
-參數設定都在 `ctrls/config.py` 中，可以設定輸出檔案位置、交易稅、起始金額等資料。
+參數設定都在 `ctrls/settings.py` 中，可以設定輸出檔案位置、交易稅、起始金額等資料。
 
 ## 常用功能
 
@@ -223,6 +223,12 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 - `drawSimple`：一般收盤圖
 - `drawCandle`：蠟燭圖
+
+## TODO:
+
+1. doc 獨立開來成gh-page，要改明白一點
+2. 增加融資finance、融券bearish
+3. 東西命名改成 Python 一點
 
 ## 附上免責聲明
 
