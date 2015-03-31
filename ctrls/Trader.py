@@ -8,13 +8,14 @@ import math
 
 class Trader():
     '''模擬交易情形的過程，買賣最小單位為張'''
-    def __init__(self, model_infos, stock_number):
+    def __init__(self, model_infos, stock_number, noLog):
 
         # 基本資料
         self.model_infos = model_infos
         self.stock_number = stock_number
-        self.date_from = None
-        self.date_to = None
+
+        # 狀態設置
+        self.noLog = noLog
 
         # 錢和股票
         self.money = TRADER_INIT_MONEY
@@ -37,24 +38,11 @@ class Trader():
         self.stock_series = [] #股票持有的股票數序列
         self.buyed_stock_series = [] #曾持有的股票數序列
 
-    def _getBuyAndSellSeries(self):
-        '''為了做成買賣趨勢圖，把交易序列和價格序列，各轉換為一個序列，有買賣就放值，沒買賣就放 None'''
-        buy_series = []
-        sell_series = []
-
-        for i in range(len(self.close_series)):
-        
-            if self.trade_series[i] == 1:
-                buy_series.append(self.close_series[i])
-            else:
-                buy_series.append(None)
-
-            if self.trade_series[i] == -1:
-                sell_series.append(self.close_series[i])
-            else:
-                sell_series.append(None)
-
-        return buy_series, sell_series
+    def printTradeLog(self, trade):
+        print ('%s %s %d at %.2f, Money: %d, Stock: %d, Asset: %d, Rate: %.3f%%' % 
+            (self.date_series[-1], trade['Act'][:3], trade['Volume'], round(trade['Value']/1000, 2), 
+            trade['Money'], trade['Stock'], trade['Asset'], trade['Rate'])
+        )
 
     def _getRisks(self):
         risks = [0.0, 0.0, 0.0, 0.0]# 分別為日、週、月、年的風險值
@@ -118,37 +106,42 @@ class Trader():
             elif self.todayVolume < 0: self.trade_series.append(-1)
             else: self.trade_series.append(0)
         
-        return {
+        trade =  {
             'Day': len(self.close_series),
             'Act': action,
             'Volume': volume,
-            'Value': price,
+            'Price': price,
             'Money': self.money,
             'Stock': self.stock,
             'Asset': asset,
             'Rate': (float(asset)/TRADER_INIT_MONEY)*100
         }
 
-    def getTradeValue(self, row, pred, when):
+        if not noLog:
+            self.printTradeLog(trade)
+
+        return trade
+
+    def getTradePrice(self, row, pred, when):
         '''算出交易時的一張金額'''
         if when == 'start':
-            # 操作價位
-            if pred["Value"] == 0:# 使用開盤價買賣
+            # 使用開盤價買賣
+            if pred["Price"] == 0:
                 return self.open_series[-1] * 1000 # 一張的價錢
 
             # 價錢在當天波動內，用自訂的金額買賣
-            elif pred["Value"] <= self.high_series[-1] and pred["Value"] >= self.low_series[-1]:
-                return self._autoCorrectPrice(pred["Value"]) * 1000 # 一張的價錢
+            elif pred["Price"] <= self.high_series[-1] and pred["Price"] >= self.low_series[-1]:
+                return self._autoCorrectPrice(pred["Price"]) * 1000 # 一張的價錢
 
             # 做買入或融資，價錢若開比最高價高則視以最高價購買
             elif (pred["Act"] == 'Buy' or pred["Act"] == 'Finance')\
-                and pred["Value"] > self.high_series[-1]:
+                and pred["Price"] > self.high_series[-1]:
 
                 return self.high_series[-1] * 1000
 
             # 做賣出或融券，價錢若比最低價低則視以最低價賣出
             elif (pred["Act"] == 'Sell' or pred["Act"] == "Bearish")\
-                and pred["Value"] < self.low_series[-1]:
+                and pred["Price"] < self.low_series[-1]:
 
                 return self.low_series[-1] * 1000
 
@@ -163,7 +156,16 @@ class Trader():
         else:
             return None
 
-    def _transact(self, row, pred, when):
+    def getTradeVolume(self, price, pred):
+        if pred["Act"] == "Buy":
+        elif pred["Act"] == "Sell":
+        elif pred["Act"] == "Finance":
+        elif pred["Act"] == "Bearish":
+        else
+        min_unit = int(STOCK_MIN_FEE / (price * STOCK_FEE)) # 至少要多少張才會超過最低手續費
+        volume = int(self.money/(price * (1 + STOCK_FEE)))
+
+    def qq(self, row, pred, when):
         # 操作動作
         # Actions: Buy, Sell, Finance, Bearish
 
@@ -171,18 +173,23 @@ class Trader():
         if pred["Volume"] < 0 or pred["Act"] == "Nothing":
             return self._updateAndreturnInfo('Nothing', 0, 0, when)
 
-        price = self.getTradeValue(row, pred, when)
-        if not price:
-            return self._updateAndreturnInfo('Nothing', 0, 0, when)
-
-        # 融資可以融到千位，融券自己要出到百位
 
         if pred["Act"] == "Buy":
+            price = self.getTradePrice(row, pred, when)
+            if not price:
+                return self._updateAndreturnInfo('Nothing', 0, 0, when)
+
+            volume = self.getTradeVolume(price, pred)
+        elif pred["Act"] == "Finance":
+            # 融資可以融到千位
+
+        elif pred["Act"] == "Bearish":
+            # 融券自己要出到百位
+            
             # 操作數量
             if pred["Volume"] == 0:# 全買
                 
-                min_unit = int(STOCK_MIN_FEE / (price * STOCK_FEE)) # 至少要多少張才會超過最低手續費
-                volume = int(self.money/(price * (1 + STOCK_FEE)))
+                
 
                 if volume == 0:
                     return self._updateAndreturnInfo('Nothing', 0, 0, when)
@@ -221,19 +228,23 @@ class Trader():
         else:
             return self._updateAndreturnInfo('Nothing', 0, 0, when)
 
-    def do(self, row, pred, when):
-        '''更新資訊並做交易，row 是新的一份資料，pred 是 model 傳來想要買或賣的資料'''
-        # 更新資料
-        if when == 'start':
-            self.date_series.append(row[0])
-            self.quant_series.append(float(row[1]))
-            self.open_series.append(float(row[3]))
-            self.high_series.append(float(row[4]))
-            self.low_series.append(float(row[5]))
-            self.close_series.append(float(row[6]))
+    def updateData(self, row):
+        self.date_series.append(row[0])
+        self.quant_series.append(float(row[1]))
+        self.open_series.append(float(row[3]))
+        self.high_series.append(float(row[4]))
+        self.low_series.append(float(row[5]))
+        self.close_series.append(float(row[6]))
+
+    def order(self, when, pred):
+        '''row 是新的一份資料，pred 是 model 傳來想要買或賣的資料'''
+        
+        if pred["Volume"] < 0 or pred["Act"] == "Nothing":
+            return self._updateAndreturnInfo('Nothing', 0, 0, when)
         
         # 做交易
-        return self._transact(row, pred, when)
+        price = self.getTradePrice(row, pred, when)
+        return self._transact(pred, price)
     
     def analysis(self):
         '''回傳總交易資訊分析'''
@@ -242,8 +253,6 @@ class Trader():
         days = len(self.close_series)
 
         trade_count = len(self.trade_series) - self.trade_series.count(0)
-
-        buy_series, sell_series = self._getBuyAndSellSeries()
 
         day_risks, week_risks, month_risks, year_risks = self._getRisks()
 
@@ -265,8 +274,6 @@ class Trader():
             "Close Series": self.close_series,
             "Low Series": self.low_series,
             "Trade Series": self.trade_series,
-            "Buy Series": buy_series,
-            "Sell Series": sell_series,
             
             # 錢和股票
             "Initial Money": TRADER_INIT_MONEY,

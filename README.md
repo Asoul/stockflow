@@ -224,6 +224,10 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 - `drawSimple`：一般收盤圖
 - `drawCandle`：蠟燭圖
 
+## LOG
+
+1. printTrade 改成 trader 輸出
+
 ## TODO:
 
 1. doc 獨立開來成gh-page，要改明白一點

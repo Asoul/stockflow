@@ -40,6 +40,25 @@ class TraderRecorder():
         return (str(t.year)+'/'+str(t.month).zfill(2)+'/'+'/'+str(t.day).zfill(2)+' '+
             str(t.hour).zfill(2)+':'+str(t.minute).zfill(2)+':'+str(t.second).zfill(2))
 
+    def _getBuyAndSellSeries(self, close_series, trade_series):
+        '''為了做成買賣趨勢圖，把交易序列和價格序列，各轉換為一個序列，有買賣就放值，沒買賣就放 None'''
+        buy_series = []
+        sell_series = []
+
+        for i in range(len(close_series)):
+        
+            if trade_series[i] == 1:
+                buy_series.append(close_series[i])
+            else:
+                buy_series.append(None)
+
+            if trade_series[i] == -1:
+                sell_series.append(close_series[i])
+            else:
+                sell_series.append(None)
+
+        return buy_series, sell_series
+
     def _recordToCSV(self, folder, filename, col1, row):
         ''' 把資料存到紀錄同一個 Model 資料、和同一隻股票資料的檔案中
         folder 是輸出位置：有可能是 MODEL_RESULT_PATH 或 STOCK_RESULT_PATH 
@@ -59,10 +78,13 @@ class TraderRecorder():
         '''輸出買賣過程的圖檔，以當天收盤價當作約略的點，紅色的三角形是買入，藍色正方形是賣出'''
         # 輸出買賣圖檔
         x_axis = range(len(result["Close Series"]))
+
+        buy_series, sell_series = self._getBuyAndSellSeries(result["Close Series"],\
+                                                            result["Trade Series"])
         
         plt.plot(x_axis, result["Close Series"], c='#000000', ls='-', lw=0.2)
-        plt.plot(x_axis, result["Buy Series"], c='#ff0000', marker='o', ms=5, alpha=0.5)
-        plt.plot(x_axis, result["Sell Series"], c='#0000ff', marker='s', ms=5, alpha=0.5)
+        plt.plot(x_axis, buy_series, c='#ff0000', marker='o', ms=5, alpha=0.5)
+        plt.plot(x_axis, sell_series, c='#0000ff', marker='s', ms=5, alpha=0.5)
 
         plt.title('ROI = '+str(result["ROI"])+'%, ROI/Trade = '+str(result["ROI Per Trade"])+'%')
 

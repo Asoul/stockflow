@@ -22,12 +22,6 @@ class Tester():
         self.numbers = numbers
         self.Model = Model
 
-    def _printTrade(self, row, trade):
-        print ('%s %s %d at %.2f, Money: %d, Stock: %d, Asset: %d, Rate: %.3f%%' % 
-            (row[0], trade['Act'][:3], trade['Volume'], round(trade['Value']/1000, 2), 
-            trade['Money'], trade['Stock'], trade['Asset'], trade['Rate'])
-        )
-
     def _getTmpData(self, number):
 
         page = requests.get('http://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_'+number+'.tw&json=1&delay=0')
@@ -59,7 +53,7 @@ class Tester():
 
             reader = Reader(number)
             model = self.Model()
-            trader = Trader(model.infos, number)
+            trader = Trader(model.infos, number, noLog)
 
             # tmpFlag 會用 api 抓最新資料
             if mode == 'tmpGood' or mode == 'tmpHold': tmpFlag = True
@@ -78,24 +72,26 @@ class Tester():
                 if (dateFrom or dateTo) and self._notInPeriod(row, dateFrom, dateTo):
                     model.update(row, None)
                 else:
-                    # 開盤現買
+                    # 更新 Trader 資訊
+                    trader.updateData(row)
+
+                    # 開盤的買：用開盤價交易
                     prediction = model.predict('start', float(row[3]))
-                    trade = trader.do(row, prediction, 'start')
-                    
-                    if mode == 'train' and not noLog and trade['Volume'] != 0:
-                        self._printTrade(row, trade)
-                    # 盤中 update
-                    model.update(row, trade, 'start')
+                    trade = trader.order('start', prediction)
+                    model.updateTrade(trade)
 
-                    # 快收盤的買
+                    # 開盤後，盤中掛單
+                    prediction = model.predict('mid', float(row[3]))
+                    trade = trader.order('mid', prediction)
+                    model.updateTrade(trade)
+
+                    # 盤末的更新
+                    model.updateData(row)
+
+                    # 收盤的買：用收盤價交易
                     prediction = model.predict('end', float(row[6]))
-                    trade = trader.do(row, prediction, 'end')
-
-                    if mode == 'train' and not noLog and trade['Volume'] != 0:
-                        self._printTrade(row, trade)
-
-                    # 盤末 update
-                    model.update(row, trade, 'end')
+                    trade = trader.order('end', prediction)
+                    model.updateTrade(trade)
             
             result = trader.analysis()
 

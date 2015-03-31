@@ -19,6 +19,10 @@ STOCK_FEE = 0.001425
 STOCK_TAX = 0.003
 STOCK_MIN_FEE = 20
 TRADER_INIT_MONEY = 100000000
+# 融資利率每年 7%
+FINANCE_FEE = 0.07
+# 融券利率為千分之一
+BEARISH_FEE = 0.001
 
 '''TraderRecorder'''
 
