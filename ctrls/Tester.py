@@ -76,21 +76,21 @@ class Tester():
                     trader.updateData(row)
 
                     # 開盤的買：用開盤價交易
-                    prediction = model.predict('start', float(row[3]))
-                    trade = trader.order('start', prediction)
+                    order = model.predict('start', float(row[3]))
+                    trade = trader.place('start', order)
                     model.updateTrade(trade)
 
                     # 開盤後，盤中掛單
-                    prediction = model.predict('mid', float(row[3]))
-                    trade = trader.order('mid', prediction)
+                    order = model.predict('mid', float(row[3]))
+                    trade = trader.place('mid', order)
                     model.updateTrade(trade)
 
                     # 盤末的更新
                     model.updateData(row)
 
                     # 收盤的買：用收盤價交易
-                    prediction = model.predict('end', float(row[6]))
-                    trade = trader.order('end', prediction)
+                    order = model.predict('end', float(row[6]))
+                    trade = trader.place('end', order)
                     model.updateTrade(trade)
             
             result = trader.analysis()
@@ -102,16 +102,16 @@ class Tester():
             elif mode == 'tmpGood' or mode == 'tmrGood':
 
                 # Model 預測出要買，而且指定時間內累計 ROI 高於 ROI Threshold
-                if prediction["Act"] == 'Buy' and result["ROI"] > roiThr:
+                if order["Act"] == 'Buy' and result["ROI"] > roiThr:
                     print last_row[0], number, ' at ', float(last_row[6]), '該買囉, ROI 累計：', result["ROI"], '%'
                     
                     # 預設買前看一下 CandleStick 確定一下
                     if drawCandle: CandleDrawer().draw(number)
 
             elif mode == 'tmpHold' or mode == 'tmrHold':
-                if prediction["Act"] == 'Sell':
+                if order["Act"] == 'Sell':
                     print last_row[0], number, ' at ', float(last_row[6]), '該賣囉, ROI 累計：', result["ROI"], '%'
-                elif prediction["Act"] == 'Nothing':
+                elif order["Act"] == 'Nothing':
                     print last_row[0], number, ' at ', float(last_row[6]), '不要動, ROI 累計：', result["ROI"], '%'
 
                 # 做操作前看一下 CandleStick 確定一下

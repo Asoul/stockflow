@@ -233,6 +233,8 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 1. doc 獨立開來成gh-page，要改明白一點
 2. 增加融資finance、融券bearish
 3. 東西命名改成 Python 一點
+4. 有時候漲停跌停，有錢可能買不到賣不出，是個邏輯 bug 點
+5. 融資融券是不是要有斷頭
 
 ## 附上免責聲明
 

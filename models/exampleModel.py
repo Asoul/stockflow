@@ -25,7 +25,7 @@ class exampleModel():
 
     def updateTrade(self, trade):
         if trade and trade["Volume"] != 0:# 有交易
-            if trade["Act"] == 'Buy':
+            if trade["Type"] == 'Buy':
                 self.haveStock += trade["Volume"]
                 self.buyPrice = float(trade["Price"])/1000
             else:
@@ -43,7 +43,7 @@ class exampleModel():
     def predict(self, when, value):
         '''
         讓 model 預測下一步應該要怎麼做，模擬下單的過程，會要回傳一個 dictionary，包含：
-            Act: Buy, Sell or Nothing
+            Type: Buy, Sell or Nothing
             Price: 要下單的價格，0 代表用開盤價買
             Volume: 要下單的量，0 代表能買多少盡量買
         '''
@@ -53,7 +53,7 @@ class exampleModel():
             或下單在整天中如果有價格符合下單的條件，就會交易
             '''
             if len(self.value_series) == 0:
-                return {"Act": "Nothing", "Price": 0, "Volume": 0}
+                return {"Type": "Nothing", "Price": 0, "Volume": 0}
             elif self.haveStock == 0 and(# 沒有持有的情況
 
                 # 高於月線 ma20
@@ -62,7 +62,7 @@ class exampleModel():
                 and self.value_series[-1] < self.value_ma[60]
 
             ):
-                return {"Act": "Buy", "Price": 0, "Volume": 0}
+                return {"Type": "Buy", "Price": 0, "Volume": 0}
 
             elif self.haveStock > 0 and (# 有持有的情框
 
@@ -72,13 +72,13 @@ class exampleModel():
                 or self.value_series[-1] < self.buyPrice * 0.9
 
             ):
-                return {"Act": "Sell", "Price": 0, "Volume": 0}
+                return {"Type": "Sell", "Price": 0, "Volume": 0}
             else:
-                return {"Act": "Nothing", "Price": 0, "Volume": 0}
+                return {"Type": "Nothing", "Price": 0, "Volume": 0}
         elif when == 'end':
             '''
             when = end 是收盤時，可以決定要不要下單，只能用當下的開盤價買賣
             '''
-            return {"Act": "Nothing", "Price": 0, "Volume": 0}
+            return {"Type": "Nothing", "Price": 0, "Volume": 0}
         else:
-            return {"Act": "Nothing", "Price": 0, "Volume": 0}
+            return {"Type": "Nothing", "Price": 0, "Volume": 0}
