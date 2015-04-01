@@ -122,8 +122,11 @@ class Trader():
         for key in ["Price", "Type", "Volume"]:
             if key not in order:
                 return True
-        # 錯誤的量
-        if order["Volume"] < 0 or order["Price"] < 0:
+        # 錯誤的價
+        if order["Price"] < 0:
+            return True
+        # 錯誤的量，融資融券才會有負數的量
+        elif order["Volume"] < 0 and order["Type"] in ["Buy", "Sell"]:
             return True
         elif when not in ["start", "mid", "end"]:
             return True
@@ -136,26 +139,37 @@ class Trader():
 
         return False
 
+    def getTradePrice(self, when, act, price):
+        if when == "start":
+            return self.open_series[-1]
+        elif when == "end":
+            return self.close_series[-1]
+        elif act == "B":
+            if price > self.high_series[-1]:
+                return self.high_series[-1]
+            elif price < self.low_series[-1]:
+                return None
+        elif act == "S":
+            if price > self.high_series[-1]:
+                return None
+            elif price < self.low_series[-1]:
+                return self.low_series[-1]
+        return price
+
     def buy(self, when, order):
         # Check Price
-        if when == "start":
-            price = self.open_series[-1]
-        elif when == "end":
-            price = self.close_series[-1]
-        elif order["Price"] < self.low_series[-1]:
-            return self.updateAndReturn('Nothing', 0, 0, when)
-        else:
-            price = order["Price"]
+        price = self.getTradePrice(when, "B", order["Price"])
 
         # Check Volume
-        min_unit = int(STOCK_MIN_FEE / (price * 1000 * STOCK_FEE)) # 至少要多少張才會超過最低手續費
-        volume = int(self.money/(price * (1 + STOCK_FEE)))
+        min_unit = int(STOCK_MIN_FEE/(price * 1000 * STOCK_FEE)) # 至少要多少張才會超過最低手續費
 
-        if volume <= min_unit and volume * price * (1 + STOCK_FEE) < self.money:
+        # 錢不夠買最低手續費所需張數
+        if min_unit * price * 1000 * (1 + STOCK_FEE) > self.money:
             volume = int((self.money - STOCK_MIN_FEE)/(price * 1000))
-            total_cost = int(volume * price + STOCK_MIN_FEE)
+            total_cost = int(price * 1000 * volume) + int(STOCK_MIN_FEE)
         else:
-            total_cost = int(volume * price * (1 + STOCK_FEE))
+            volume = int(self.money/(price * 1000 * (1 + STOCK_FEE)))
+            total_cost = int(price * 1000 * volume) + int(price * 1000 * volume * STOCK_FEE)
 
         # Update
         self.money -= total_cost # 扣除股票費和手續費
@@ -165,14 +179,7 @@ class Trader():
         
     def sell(self, when, order):
         # Check Price
-        if when == "start":
-            price = self.open_series[-1]
-        elif when == "end":
-            price = self.close_series[-1]
-        elif order["Price"] < self.low_series[-1]:
-            return self.updateAndReturn('Nothing', 0, 0, when)
-        else:
-            price = order["Price"]
+        price = self.getTradePrice(when, "S", order["Price"])
 
         if order["Volume"] == 0 or order["Volume"] > self.stock:
             volume = self.stock
@@ -181,11 +188,36 @@ class Trader():
         
         fee = int(min(STOCK_MIN_FEE, price * volume * 1000 * STOCK_FEE))
         tax = int(price * volume * 1000 * STOCK_TAX)
-        self.money += int(price * volume * 1000 - fee - tax)
+        self.money += int(price * volume * 1000) - fee - tax
         self.stock -= volume
 
         return self.updateAndreturnInfo('Sell', price, volume, when)
-        
+
+    def financeBuy(self, when, order):
+        # Check Price
+        if order["Volume"]
+        price = self.getTradePrice(when, "B", order["Price"])
+
+        # Check Volume
+        min_unit = int(STOCK_MIN_FEE/(price * 1000 * STOCK_FEE)) # 至少要多少張才會超過最低手續費
+
+        # 錢不夠買最低手續費所需張數
+        if math.ceil(min_unit * price * (1 - FINANCE_RATE)) * 1000 + STOCK_MIN_FEE > self.money:
+
+        else:
+            max_finance = int(self.money * (FINANCE_RATE)/(1 - FINANCE_RATE +STOCK_FEE)/1000) * 1000
+            can_use = self.money * (1 - FINANCE_RATE)/(1 - FINANCE_RATE + STOCK_FEE)
+
+            volume = int((max_finance + can_use)/(price * 1000))
+            total_finance = int(price * volume * FINANCE_RATE) * 1000
+            total_cost = price * volume * 1000 * (1 + STOCK_FEE) - total_finance
+
+        # Update
+        self.money -= total_cost # 扣除股票費和手續費
+        self.finance_debt += total_finance
+        self.stock += volume # 持有股票數
+
+        return self.updateAndreturnInfo('Finance', price, volume, when)
 
     def place(self, when, order):
         '''when 是時間點，order 是 model 傳來想要買或賣的資料'''
@@ -195,16 +227,20 @@ class Trader():
 
         if order["Type"] == "Nothing":
             return self.updateAndReturn('Nothing', 0, 0, when)        
-        elif order["Type"] == "Sell":
-            return self.sell(when, order)
         elif order["Type"] == "Buy":
             return self.buy(when, order)
-        elif order["Type"] == "Finance":
-            return self.finance(when, order)
-            # 融資可以融到千位
+        elif order["Type"] == "Sell":
+            return self.sell(when, order)
+        elif order["Type"] == "Finance Buy":
+            return self.financeBuy(when, order)
+        elif order["Type"] == "Finance Sell":
+            return self.financeSell(when, order)
+        elif order["Type"] == "Bearish Buy":
+            return self.bearishBuy(when, order)
+        elif order["Type"] == "Bearish Sell":
+            return self.bearishSell(when, order)
         else:
             return self.bearish(when, order)
-            # 融券自己要出到百位
 
             
             # 操作數量
