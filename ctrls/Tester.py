@@ -93,7 +93,7 @@ class Tester():
                     trade = trader.place('end', order)
                     model.updateTrade(trade)
             
-            result = trader.analysis()
+            result = trader.getResult()
 
             if mode == 'train' and not noRecord:
                 tr = TraderRecorder()
