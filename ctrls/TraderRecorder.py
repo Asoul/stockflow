@@ -3,8 +3,10 @@
 
 import os
 import csv
+import math
 import numpy as np
 from settings import *
+from scipy.stats import norm
 from datetime import datetime
 import matplotlib.pyplot as plt
 from os.path import isfile, join, isdir
@@ -15,12 +17,9 @@ HEADERS = [
     "ROI Per Trade",
     "Weekly ROI",
     "Stock-Hold Day",
-    "Daily Risk",
-    "Weekly Risk",
-    "Monthly Risk",
-    "Yearly Risk",
-    "Buy Count",
-    "Sell Count",
+    "Yearly Risk Mean",
+    "Yearly Risk Std",
+    "Positive Rate",
     "Trade Count",
     "Stock / Asset Rate",
     "Stock / Asset Change Std",
@@ -87,7 +86,7 @@ class TraderRecorder():
         plt.plot(x_axis, buy_series, c='#ff0000', marker='o', ms=5, alpha=0.5)
         plt.plot(x_axis, sell_series, c='#0000ff', marker='s', ms=5, alpha=0.5)
 
-        plt.title('ROI = '+format(roi)+', ROI/Trade = '+format(roi_per_trade))
+        plt.title('ROI = '+self.formatRoundPercent(roi)+', ROI/Trade = '+self.formatRoundPercent(roi_per_trade))
 
         # set figure arguments
         fig = plt.gcf()
@@ -108,23 +107,19 @@ class TraderRecorder():
         plt.clf()
         plt.close('all')
 
-    def getRisks(self, asset_series):
-        risks = [0.0, 0.0, 0.0, 0.0]# 分別為日、週、月、年的風險值
-        risk_days = [1, 5, 20, 240]
+    def getRisk(self, asset_series):
 
-        for risk_idx in xrange(4):
-            # 如果累計天數超過要算風險值所需的天數，才要算
-            if len(asset_series) > risk_days[risk_idx] + 1:
+        # 風險是要把獲利取自然對數再算平均、標準差：std(ln(estate(n)/estate(n-1)))
+        risks = []
+        for i in range(1, len(asset_series)):
+            risks.append(np.log(float(asset_series[i])/asset_series[i - 1]))
+        risk_avg = np.mean(risks)
+        risk_std = np.std(risks)
 
-                # 風險是要把獲利取自然對數再算標準差：std(ln(estate(n)/estate(n-1)))
-                tmp_risks = []
-                for i in range(risk_days[risk_idx]+1, len(asset_series)):
-                    tmp_risks.append(np.log(float(asset_series[i])/asset_series[i - risk_days[risk_idx]]))
-                risks[risk_idx] = np.std(tmp_risks)
-
-        return risks
+        # 年化
+        return risk_avg * 252, risk_std * math.sqrt(252)
         
-    def format(self, num):
+    def formatRoundPercent(self, num):
         return str(round(num * 100, 3))+'%'
 
     def record(self, result):
@@ -135,17 +130,17 @@ class TraderRecorder():
 
         days = len(result["Close Series"])
 
-        buy_count = result["Trade Series"].count(1)
-        sell_count = result["Trade Series"].count(-1)
-        trade_count = buy_count + sell_count
+        trade_count = result["Trade Series"].count(1) + result["Trade Series"].count(-1)
 
-        day_risks, week_risks, month_risks, year_risks = self.getRisks(result["Asset Series"])
+        risk_avg, risk_std = self.getRisk(result["Asset Series"])
+        positive_rate = 1.0 - norm.cdf(-risk_avg/risk_std)
 
         
         if days > 0:
             date_from = result["Date Series"][0]
             date_to = result["Date Series"][-1]
             weekly_roi = (factor**(float(5)/days) - 1)
+            
             stock_hold_day = float(sum(result["Stock Series"]))/sum(result["Buyed Stock Series"])
             stock_ratio_avg = np.mean(result["Stock Ratio Series"])
             stock_ratio_std = np.std(result["Stock Ratio Series"])
@@ -163,19 +158,16 @@ class TraderRecorder():
             roi_per_trade = 0
 
         row = [
-            format(roi),
-            format(roi_per_trade),
-            format(weekly_roi),
+            self.formatRoundPercent(roi),
+            self.formatRoundPercent(roi_per_trade),
+            self.formatRoundPercent(weekly_roi),
             round(stock_hold_day, 3),
-            format(day_risks),
-            format(week_risks),
-            format(month_risks),
-            format(year_risks),
-            buy_count,
-            sell_count,
+            round(risk_avg, 3),
+            round(risk_std, 3),
+            self.formatRoundPercent(positive_rate),
             trade_count,
-            format(stock_ratio_avg),
-            format(stock_ratio_std),
+            self.formatRoundPercent(stock_ratio_avg),
+            self.formatRoundPercent(stock_ratio_std),
             date_from,
             date_to,
             TRADER_INIT_MONEY,

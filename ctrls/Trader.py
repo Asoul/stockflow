@@ -42,10 +42,26 @@ class Trader():
         self.stock_series = [] #股票持有的股票數序列
         self.buyed_stock_series = [] #曾持有的股票數序列
 
-    def printTradeLog(self, trade):
-        print ('%s %s %d at %.2f, Money: %d, Stock: %d, Asset: %d, Rate: %.3f%%' % 
-            (self.date_series[-1], trade['Type'][:3], trade['Volume'], round(trade['Price']/1000, 2), 
-            trade['Money'], trade['Stock'], trade['Asset'], trade['Rate'])
+    def printLog(self, trade, when):
+        if trade['Type'] == 'Buy':
+            token = 'Buy'
+        elif trade['Type'] == 'Sell':
+            token = "Sel"
+        elif trade['Type'] == 'Finance Buy':
+            token = "FiB"
+        elif trade['Type'] == 'Finance Sell':
+            token = "FiS"
+        elif trade['Type'] == 'Bearish Buy':
+            token = "BeB"
+        elif trade['Type'] == 'Bearish Sell':
+            token = "BeS"
+
+        stocks = self.stock + self.finance_stock + self.bearish_stock
+        debts = self.finance_debt + self.bearish_debt
+        asset = self.getAsset(trade["Price"])
+        print ('%s %s %s %d at %.2f, Money: %d, Stock: %d, Debt: %d, Asset: %d, Rate: %.3f%%' % 
+            (self.date_series[-1], when[:4], token, trade['Volume'], trade['Price'], 
+            self.money, stocks, debts, asset, float(asset)/TRADER_INIT_MONEY*100)
         )
 
     def autoCorrectPrice(self, price):
@@ -64,7 +80,7 @@ class Trader():
             price = math.floor(price * 100)/100
         return price
 
-    def updateAndReturn(self, action, price, volume, when):
+    def getAsset(self, price):
         cost = int(price * self.stock * 1000)
         fee = int(max(STOCK_MIN_FEE, cost * STOCK_FEE))
         tax = int(cost * STOCK_TAX)
@@ -76,10 +92,12 @@ class Trader():
         finance_interest = 0
         total_finance = finance - finance_fee - finance_tax - finance_interest - self.finance_debt
 
+        return self.money + total_stock + total_finance
+
+    def updateAndReturn(self, action, price, volume, when):
+        
         # bearish = self.bearish_stock[-1] * self.close_series[-1] * 1000
         # bearish_fee = max(STOCK_MIN_FEE, bearish * STOCK_FEE)
-
-        asset = self.money + total_stock + total_finance
 
         if when == 'start':
             self.buyed_stock_series.append(0)
@@ -88,16 +106,13 @@ class Trader():
         if action in ['Buy', "Finance Buy", "Bearish Buy"]:
             self.buyed_stock_series[-1] += volume
             self.stock_series[-1] += volume
-        elif action in ['Sell', "Finance Sell", "Bearish Sell"]:
+        elif action in ["Sell", "Finance Sell", "Bearish Sell"]:
             self.stock_series[-1] -= volume
 
         if when == 'end':# 一天結束了
-
+            asset = self.getAsset(self.close_series[-1])
             self.asset_series.append(asset)
             
-            # 更新股票占資產的比率序列
-            self.stock_ratio_series.append(1 - float(self.money)/asset)
-        
             # 更新買賣序列
             if self.stock_series[-1] > 0:
                 self.trade_series.append(1)
@@ -105,20 +120,22 @@ class Trader():
                 self.trade_series.append(-1)
             else:
                 self.trade_series.append(0)
+            
+            # 更新股票占資產的比率序列
+            if len(self.stock_series) > 1:
+                self.stock_series[-1] = self.stock_series[-1] + self.stock_series[-2]
+            self.stock_ratio_series.append(1 - float(self.money)/asset)
         
+            
+
         trade =  {
-            'Day': len(self.close_series),
             'Type': action,
             'Volume': volume,
-            'Price': price,
-            'Money': self.money,
-            'Stock': self.stock,
-            'Asset': asset,
-            'Rate': (float(asset)/TRADER_INIT_MONEY)*100
+            'Price': price
         }
 
         if not self.noLog and trade["Type"] != "Nothing":
-            self.printTradeLog(trade)
+            self.printLog(trade, when)
 
         return trade
 

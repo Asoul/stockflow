@@ -227,6 +227,7 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 ## LOG
 
 1. printTrade 改成 trader 輸出
+2. 更新風險公式
 
 ## TODO:
 
