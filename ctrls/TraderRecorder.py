@@ -3,6 +3,7 @@
 
 import os
 import csv
+import numpy as np
 from settings import *
 from datetime import datetime
 import matplotlib.pyplot as plt
@@ -74,7 +75,7 @@ class TraderRecorder():
 
         cw.writerow([col1]+row)
 
-    def recordToPNG(self, result):
+    def recordToPNG(self, result, roi, roi_per_trade):
         '''輸出買賣過程的圖檔，以當天收盤價當作約略的點，紅色的三角形是買入，藍色正方形是賣出'''
 
         # 輸出買賣圖檔
@@ -107,18 +108,18 @@ class TraderRecorder():
         plt.clf()
         plt.close('all')
 
-    def getRisks(self):
+    def getRisks(self, asset_series):
         risks = [0.0, 0.0, 0.0, 0.0]# 分別為日、週、月、年的風險值
         risk_days = [1, 5, 20, 240]
 
         for risk_idx in xrange(4):
             # 如果累計天數超過要算風險值所需的天數，才要算
-            if len(self.asset_series) > risk_days[risk_idx] + 1:
+            if len(asset_series) > risk_days[risk_idx] + 1:
 
                 # 風險是要把獲利取自然對數再算標準差：std(ln(estate(n)/estate(n-1)))
                 tmp_risks = []
-                for i in range(risk_days[risk_idx]+1, len(self.asset_series)):
-                    tmp_risks.append(np.log(float(self.asset_series[i])/self.asset_series[i - risk_days[risk_idx]]))
+                for i in range(risk_days[risk_idx]+1, len(asset_series)):
+                    tmp_risks.append(np.log(float(asset_series[i])/asset_series[i - risk_days[risk_idx]]))
                 risks[risk_idx] = np.std(tmp_risks)
 
         return risks
@@ -134,11 +135,11 @@ class TraderRecorder():
 
         days = len(result["Close Series"])
 
-        buy_count = result["Trade Count"].count(1)
-        sell_count = result["Trade Count"].count(-1)
+        buy_count = result["Trade Series"].count(1)
+        sell_count = result["Trade Series"].count(-1)
         trade_count = buy_count + sell_count
 
-        day_risks, week_risks, month_risks, year_risks = self.getRisks()
+        day_risks, week_risks, month_risks, year_risks = self.getRisks(result["Asset Series"])
 
         
         if days > 0:

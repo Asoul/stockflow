@@ -36,7 +36,7 @@ class Trader():
         
         self.trade_series = [] # 交易種類序列, 1 買 -1 賣 0 沒動作
         self.asset_series = [TRADER_INIT_MONEY]# 資產序列, 先加入一個起始資產
-        self.stockRate_series = []# 股票佔資產比率
+        self.stock_ratio_series = []# 股票佔資產比率
 
         # 計算股票平均持有天數
         self.stock_series = [] #股票持有的股票數序列
@@ -44,7 +44,7 @@ class Trader():
 
     def printTradeLog(self, trade):
         print ('%s %s %d at %.2f, Money: %d, Stock: %d, Asset: %d, Rate: %.3f%%' % 
-            (self.date_series[-1], trade['Type'][:3], trade['Volume'], round(trade['Value']/1000, 2), 
+            (self.date_series[-1], trade['Type'][:3], trade['Volume'], round(trade['Price']/1000, 2), 
             trade['Money'], trade['Stock'], trade['Asset'], trade['Rate'])
         )
 
@@ -64,35 +64,47 @@ class Trader():
             price = math.floor(price * 100)/100
         return price
 
-    def updateAndreturn(self, action, price, volume, when):
-        # 更新資產：最後才更新因為買賣會扣手續費
-        asset = int(self.close_series[-1] * self.stock * 1000+ self.money)
-        self.asset_series.append(asset)
+    def updateAndReturn(self, action, price, volume, when):
+        cost = int(price * self.stock * 1000)
+        fee = int(max(STOCK_MIN_FEE, cost * STOCK_FEE))
+        tax = int(cost * STOCK_TAX)
+        total_stock = cost - fee - tax
+
+        finance = self.finance_stock * price * 1000
+        finance_fee = max(STOCK_MIN_FEE, finance * STOCK_FEE)
+        finance_tax = int(finance * STOCK_TAX)
+        finance_interest = 0
+        total_finance = finance - finance_fee - finance_tax - finance_interest - self.finance_debt
+
+        # bearish = self.bearish_stock[-1] * self.close_series[-1] * 1000
+        # bearish_fee = max(STOCK_MIN_FEE, bearish * STOCK_FEE)
+
+        asset = self.money + total_stock + total_finance
 
         if when == 'start':
-            self.todayVolume = 0# 每天開始前先歸零，計算當沖量
+            self.buyed_stock_series.append(0)
+            self.stock_series.append(0)
         
-        if action == 'Buy':
-            self.todayVolume += volume
-        elif action == 'Sell':
-            self.todayVolume -= volume
+        if action in ['Buy', "Finance Buy", "Bearish Buy"]:
+            self.buyed_stock_series[-1] += volume
+            self.stock_series[-1] += volume
+        elif action in ['Sell', "Finance Sell", "Bearish Sell"]:
+            self.stock_series[-1] -= volume
 
         if when == 'end':# 一天結束了
-            
-            # 更新持有的股票數
-            if self.todayVolume > 0:
-                self.buyed_stock_series.append(self.todayVolume) # 買過的股票數
-            else:
-                self.buyed_stock_series.append(0)
-            self.stock_series.append(self.stock)
+
+            self.asset_series.append(asset)
             
             # 更新股票占資產的比率序列
-            self.stockRate_series.append(float(self.close_series[-1] * self.stock * 1000)/asset)
+            self.stock_ratio_series.append(1 - float(self.money)/asset)
         
             # 更新買賣序列
-            if self.todayVolume > 0: self.trade_series.append(1)
-            elif self.todayVolume < 0: self.trade_series.append(-1)
-            else: self.trade_series.append(0)
+            if self.stock_series[-1] > 0:
+                self.trade_series.append(1)
+            elif self.stock_series[-1] < 0:
+                self.trade_series.append(-1)
+            else:
+                self.trade_series.append(0)
         
         trade =  {
             'Day': len(self.close_series),
@@ -105,7 +117,7 @@ class Trader():
             'Rate': (float(asset)/TRADER_INIT_MONEY)*100
         }
 
-        if not noLog:
+        if not self.noLog and trade["Type"] != "Nothing":
             self.printTradeLog(trade)
 
         return trade
@@ -160,7 +172,7 @@ class Trader():
         # Check Price
         price = self.getTradePrice(when, "B", order["Price"])
         if price == None:
-            return self.updateAndreturnInfo('Nothing', 0, 0, when)
+            return self.updateAndReturn('Nothing', 0, 0, when)
 
         # Check Volume
         if order["Volume"] == 0: # 全買
@@ -178,18 +190,18 @@ class Trader():
         cost = volume * price * 1000
         total_cost = cost + max(STOCK_MIN_FEE, cost * STOCK_FEE)
         if total_cost > self.money:
-            return self.updateAndreturnInfo('Nothing', 0, 0, when)
+            return self.updateAndReturn('Nothing', 0, 0, when)
         # Update
         self.money -= total_cost # 扣除股票費和手續費
         self.stock += volume # 持有股票數
 
-        return self.updateAndreturnInfo('Buy', price, volume, when)
+        return self.updateAndReturn('Buy', price, volume, when)
         
     def sell(self, when, order):
         # Check Price
         price = self.getTradePrice(when, "S", order["Price"])
         if price == None:
-            return self.updateAndreturnInfo('Nothing', 0, 0, when)
+            return self.updateAndReturn('Nothing', 0, 0, when)
 
         if order["Volume"] == 0 or order["Volume"] >= self.stock:
             volume = self.stock
@@ -203,13 +215,13 @@ class Trader():
         self.money += cost - fee - tax
         self.stock -= volume
 
-        return self.updateAndreturnInfo('Sell', price, volume, when)
+        return self.updateAndReturn('Sell', price, volume, when)
 
     def financeBuy(self, when, order):
         # Check Price
         price = self.getTradePrice(when, "B", order["Price"])
         if price == None:
-            return self.updateAndreturnInfo('Nothing', 0, 0, when)
+            return self.updateAndReturn('Nothing', 0, 0, when)
 
         # Check Volume
         if order["Volume"] == 0:
@@ -236,13 +248,13 @@ class Trader():
         self.finance_debt += total_finance
         self.finance_stock += volume # 持有股票數
 
-        return self.updateAndreturnInfo('Finance Buy', price, volume, when)
+        return self.updateAndReturn('Finance Buy', price, volume, when)
 
     def financeSell(self, when, order):
         # Check Price
         price = self.getTradePrice(when, "S", order["Price"])
         if price == None:
-            return self.updateAndreturnInfo('Nothing', 0, 0, when)
+            return self.updateAndReturn('Nothing', 0, 0, when)
 
         if order["Volume"] == 0 or order["Volume"] >= self.finance_stock:
             volume = self.finance_stock
@@ -263,7 +275,7 @@ class Trader():
         self.finance_debt -= repay_finance
         self.finance_stock -= volume # 持有股票數
 
-        return self.updateAndreturnInfo('Finance Sell', price, volume, when)
+        return self.updateAndReturn('Finance Sell', price, volume, when)
 
     def place(self, when, order):
         '''when 是時間點，order 是 model 傳來想要買或賣的資料'''
