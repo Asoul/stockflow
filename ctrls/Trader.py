@@ -60,7 +60,7 @@ class Trader():
         debts = self.finance_debt + self.bearish_debt
         asset = self.getAsset(trade["Price"])
         print ('%s %s %s %d at %.2f, Money: %d, Stock: %d, Debt: %d, Asset: %d, Rate: %.3f%%' % 
-            (self.date_series[-1], when[:4], token, trade['Volume'], trade['Price'], 
+            (self.date_series[-1], when[:3], token, trade['Volume'], trade['Price'], 
             self.money, stocks, debts, asset, float(asset)/TRADER_INIT_MONEY*100)
         )
 
@@ -120,13 +120,11 @@ class Trader():
                 self.trade_series.append(-1)
             else:
                 self.trade_series.append(0)
-            
+
             # 更新股票占資產的比率序列
             if len(self.stock_series) > 1:
                 self.stock_series[-1] = self.stock_series[-1] + self.stock_series[-2]
-            self.stock_ratio_series.append(1 - float(self.money)/asset)
-        
-            
+            self.stock_ratio_series.append(1 - float(self.money)/asset)            
 
         trade =  {
             'Type': action,
@@ -283,7 +281,7 @@ class Trader():
             repay_finance = self.finance_debt - can_finance
 
         cost = int(price * volume * 1000)
-        interest = repay_finance * FINANCE_INTEREST# TODO: 算出差幾天
+        interest = repay_finance * FINANCE_INTEREST * 0# TODO: 算出差幾天
         fee = int(max(STOCK_MIN_FEE, cost * STOCK_FEE))
         tax = int(cost * STOCK_TAX)
 

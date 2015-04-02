@@ -7,14 +7,14 @@ class exampleModel():
     
     def __init__(self):
         # 紀錄序列
-        self.value_series = []
+        self.price_series = []
 
         # 紀錄狀態
         self.haveStock = 0.0
         self.buyPrice = 0.0
 
         # Simple Moving Average
-        self.value_ma = [0.0 for x in xrange(121)]  # the value ma(x) series
+        self.price_ma = [0.0 for x in xrange(121)]  # the price ma(x) series
 
         # 參數們
         self.infos = {
@@ -25,22 +25,20 @@ class exampleModel():
 
     def updateTrade(self, trade):
         if trade and trade["Volume"] != 0:# 有交易
-            if trade["Type"] == 'Buy':
+            if trade["Type"] == 'Finance Buy':
                 self.haveStock += trade["Volume"]
-                self.buyPrice = float(trade["Price"])/1000
-            else:
+                self.buyPrice = float(trade["Price"])
+            elif trade["Type"] == "Finance Sell":
                 self.haveStock -= trade["Volume"]
 
-            if self.haveStock < 0:
-                raise Exception("haveStock cannot be negative")
 
     def updateData(self, row):
-        self.value_series.append(float(row[6]))
+        self.price_series.append(float(row[6]))
         # Simple Moving Average
         for i in [20, 60]:
-            self.value_ma[i] = np.mean(self.value_series[-min(i, len(self.value_series)):])
+            self.price_ma[i] = np.mean(self.price_series[-min(i, len(self.price_series)):])
 
-    def predict(self, when, value):
+    def predict(self, when, price):
         '''
         讓 model 預測下一步應該要怎麼做，模擬下單的過程，會要回傳一個 dictionary，包含：
             Type: Buy, Sell or Nothing
@@ -52,27 +50,27 @@ class exampleModel():
             when = start 是開盤時，可以決定要不要下單，可以用當下的開盤價買賣，
             或下單在整天中如果有價格符合下單的條件，就會交易
             '''
-            if len(self.value_series) == 0:
+            if len(self.price_series) == 0:
                 return {"Type": "Nothing", "Price": 0, "Volume": 0}
             elif self.haveStock == 0 and(# 沒有持有的情況
 
                 # 高於月線 ma20
-                self.value_series[-1] > self.value_ma[20]
+                self.price_series[-1] > self.price_ma[20]
                 # 低於季線 ma60
-                and self.value_series[-1] < self.value_ma[60]
+                and self.price_series[-1] < self.price_ma[60]
 
             ):
-                return {"Type": "Buy", "Price": 0, "Volume": 0}
+                return {"Type": "Finance Buy", "Price": 0, "Volume": 0}
 
             elif self.haveStock > 0 and (# 有持有的情框
 
                 # 低於月線 ma20
-                self.value_series[-1] < self.value_ma[20]
+                self.price_series[-1] < self.price_ma[20]
                 # 停損
-                or self.value_series[-1] < self.buyPrice * 0.9
+                or self.price_series[-1] < self.buyPrice * 0.9
 
             ):
-                return {"Type": "Sell", "Price": 0, "Volume": 0}
+                return {"Type": "Finance Sell", "Price": 0, "Volume": 0}
             else:
                 return {"Type": "Nothing", "Price": 0, "Volume": 0}
         elif when == 'end':
