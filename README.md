@@ -228,6 +228,9 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 
 1. printTrade 改成 trader 輸出
 2. 更新風險公式
+3. 為了方便計算，利息依照融資歸還比例償還總累計利息
+4. 不考慮資產變為負的後續處理
+5. 融券不計利息，太微薄了
 
 ## TODO:
 

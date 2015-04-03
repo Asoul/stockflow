@@ -112,7 +112,7 @@ class TraderRecorder():
         # 風險是要把獲利取自然對數再算平均、標準差：std(ln(estate(n)/estate(n-1)))
         risks = []
         for i in range(1, len(asset_series)):
-            risks.append(np.log(float(asset_series[i])/asset_series[i - 1]))
+            risks.append(np.log(float(asset_series[i])/asset_series[i-1]))
         risk_avg = np.mean(risks)
         risk_std = np.std(risks)
 
@@ -134,23 +134,24 @@ class TraderRecorder():
 
         risk_avg, risk_std = self.getRisk(result["Asset Series"])
         positive_rate = 1.0 - norm.cdf(-risk_avg/risk_std)
-
         
         if days > 0:
             date_from = result["Date Series"][0]
             date_to = result["Date Series"][-1]
-            weekly_roi = (factor**(float(5)/days) - 1)
-            
-            stock_hold_day = float(sum(result["Stock Series"]))/sum(result["Buyed Stock Series"])
             stock_ratio_avg = np.mean(result["Stock Ratio Series"])
-            stock_ratio_std = np.std(result["Stock Ratio Series"])
+            stock_ratio_std = np.std(result["Stock Ratio Series"])    
+            weekly_roi = (factor**(float(5)/days) - 1)
         else:
             date_from = "No Period"
             date_to = "No Period"
             weekly_roi = 0
-            stock_hold_day = 0
             stock_ratio_avg = 0
             stock_ratio_std = 0
+
+        if sum(result["Buyed Stock Series"]) > 0:
+            stock_hold_day = float(sum(result["Stock Series"]))/sum(result["Buyed Stock Series"])
+        else:
+            stock_hold_day = 0
         
         if trade_count > 0:
             roi_per_trade = (factor**(2.0/(trade_count))-1)

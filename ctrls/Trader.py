@@ -5,6 +5,7 @@ import csv
 import numpy as np
 from settings import *
 import math
+from datetime import datetime, date, timedelta
 
 class Trader():
     '''模擬交易情形的過程，買賣最小單位為張(1000 股)'''
@@ -22,8 +23,11 @@ class Trader():
         self.stock = 0
         self.finance_debt = 0
         self.finance_stock = 0
+        self.finance_interest = 0
+        self.bearish_promise = 0
         self.bearish_debt = 0
         self.bearish_stock = 0
+        self.bearish_interest = 0
 
         # 時間序列
         # 交易日期、成交股數、成交金額、開盤價、最高價、最低價、收盤價、漲跌價差、成交筆數
@@ -94,15 +98,16 @@ class Trader():
 
         return self.money + total_stock + total_finance
 
+    def diffDay(day1, day2):
+        y1, m1, d1 = day1.split('/')
+        y2, m2, d2 = day2.split('/')
+        return (date(int(y1)+1911, int(m1), int(d1)) - date(int(y2)+1911, int(m2), int(d2))).days
+
     def updateAndReturn(self, action, price, volume, when):
         
         # bearish = self.bearish_stock[-1] * self.close_series[-1] * 1000
         # bearish_fee = max(STOCK_MIN_FEE, bearish * STOCK_FEE)
 
-        if when == 'start':
-            self.buyed_stock_series.append(0)
-            self.stock_series.append(0)
-        
         if action in ['Buy', "Finance Buy", "Bearish Buy"]:
             self.buyed_stock_series[-1] += volume
             self.stock_series[-1] += volume
@@ -112,6 +117,8 @@ class Trader():
         if when == 'end':# 一天結束了
             asset = self.getAsset(self.close_series[-1])
             self.asset_series.append(asset)
+
+            self.finance_interest += int(self.finance_debt * FINANCE_INTEREST / 365)
             
             # 更新買賣序列
             if self.stock_series[-1] > 0:
@@ -144,6 +151,8 @@ class Trader():
         self.high_series.append(float(row[4]))
         self.low_series.append(float(row[5]))
         self.close_series.append(float(row[6]))
+        self.buyed_stock_series.append(0)
+        self.stock_series.append(0)
 
     def isErrorOrder(self, when, order):
         '''檢查是不是會有錯誤的單'''
@@ -202,6 +211,8 @@ class Trader():
         else:
             volume = int(order["Volume"])
             
+        if volume <= 0:
+            return self.updateAndReturn('Nothing', 0, 0, when)
         cost = volume * price * 1000
         total_cost = cost + max(STOCK_MIN_FEE, cost * STOCK_FEE)
         if total_cost > self.money:
@@ -254,6 +265,8 @@ class Trader():
         else:
             volume = int(order["Volume"])
 
+        if volume <= 0:
+            return self.updateAndReturn('Nothing', 0, 0, when)
         total_finance = int(price * volume * FINANCE_RATE) * 1000
         cost = price * volume * 1000
         total_cost = cost + max(STOCK_MIN_FEE, cost * STOCK_FEE) - total_finance
@@ -281,16 +294,82 @@ class Trader():
             repay_finance = self.finance_debt - can_finance
 
         cost = int(price * volume * 1000)
-        interest = repay_finance * FINANCE_INTEREST * 0# TODO: 算出差幾天
+        interest = int(repay_finance / self.finance_debt * self.finance_interest)
         fee = int(max(STOCK_MIN_FEE, cost * STOCK_FEE))
         tax = int(cost * STOCK_TAX)
 
         # Update
         self.money += cost - repay_finance - interest - fee - tax
         self.finance_debt -= repay_finance
+        self.finance_interest -= interest
         self.finance_stock -= volume # 持有股票數
 
         return self.updateAndReturn('Finance Sell', price, volume, when)
+
+    def bearishBuy(self, when, order):
+        # Check Price
+        price = self.getTradePrice(when, "S", order["Price"])
+        if price == None:
+            return self.updateAndReturn('Nothing', 0, 0, when)
+
+        # Check Volume
+        if order["Volume"] == 0:
+            volume = int(int(self.money / 100) / (BEARISH_RATE * price * 1000))
+        else:
+            volume = int(order["Volume"])
+
+        if volume <= 0:
+            return self.updateAndReturn('Nothing', 0, 0, when)
+
+        cost = price * volume * 1000
+        promise = int(math.ceil(cost*BEARISH_RATE/100)*100)
+        bearish_fee = int(cost * BEARISH_FEE)
+        fee = int(max(STOCK_MIN_FEE, cost * STOCK_FEE))
+        tax = int(cost * STOCK_TAX)
+
+        # Update
+        self.money -= promise # 扣除股票費和手續費
+        self.bearish_debt += cost - fee - tax - bearish_fee
+        self.bearish_promise += promise
+        self.bearish_stock += volume # 持有股票數
+
+        return self.updateAndReturn('Bearish Buy', price, volume, when)
+
+    def bearishSell(self, when, order):
+        # Check Price
+        price = self.getTradePrice(when, "B", order["Price"])
+        if price == None:
+            return self.updateAndReturn('Nothing', 0, 0, when)
+
+        if order["Volume"] == 0 or order["Volume"] >= self.bearish_stock:
+            volume = self.bearish_stock
+            remain_debt = 0
+            remain_promise = 0
+            interest = self.bearish_interest
+        else:
+            volume = int(order["Volume"])
+            # 只償還一部分的話，要剩下的還可以融多少
+            remain_cost = int((self.bearish_stock - volume) * price)
+            remain_fee = int(remain_cost * STOCK_FEE)
+            remain_tax = int(remain_cost * STOCK_TAX)
+            remain_bfee = int(remain_cost * BEARISH_FEE)
+            remain_debt = int(remain_cost - remain_fee - remain_tax - remain_bfee)
+            remain_promise = int(math.ceil(remain_cost * BEARISH_RATE / 100) * 100)
+            interest = int(self.bearish_interest * (float(volume)/self.bearish_stock))
+
+        cost = int(price * volume * 1000)
+        fee = int(max(STOCK_MIN_FEE, cost * STOCK_FEE))
+        debt_delta = self.bearish_debt - remain_debt
+        promise_delta = self.bearish_promise - remain_promise
+
+        # Update
+        self.money += (debt_delta + promise_delta - cost - fee + interest)
+        self.bearish_stock -= volume
+        self.bearish_interest -= interest
+        self.bearish_promise -= promise_delta
+        self.bearish_debt -= debt_delta
+
+        return self.updateAndReturn('Bearish Sell', price, volume, when)
 
     def place(self, when, order):
         '''when 是時間點，order 是 model 傳來想要買或賣的資料'''
