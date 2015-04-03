@@ -25,10 +25,10 @@ class exampleModel():
 
     def updateTrade(self, trade):
         if trade and trade["Volume"] != 0:# 有交易
-            if trade["Type"] == 'Finance Buy':
+            if trade["Type"] == 'Bearish Buy':
                 self.haveStock += trade["Volume"]
                 self.buyPrice = float(trade["Price"])
-            elif trade["Type"] == "Finance Sell":
+            elif trade["Type"] == "Bearish Sell":
                 self.haveStock -= trade["Volume"]
 
 
@@ -60,7 +60,7 @@ class exampleModel():
                 and self.price_series[-1] < self.price_ma[60]
 
             ):
-                return {"Type": "Finance Buy", "Price": 0, "Volume": 0}
+                return {"Type": "Bearish Buy", "Price": 0, "Volume": 0}
 
             elif self.haveStock > 0 and (# 有持有的情框
 
@@ -70,7 +70,7 @@ class exampleModel():
                 or self.price_series[-1] < self.buyPrice * 0.9
 
             ):
-                return {"Type": "Finance Sell", "Price": 0, "Volume": 0}
+                return {"Type": "Bearish Sell", "Price": 0, "Volume": 0}
             else:
                 return {"Type": "Nothing", "Price": 0, "Volume": 0}
         elif when == 'end':

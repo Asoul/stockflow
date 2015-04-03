@@ -25,6 +25,7 @@ FINANCE_INTEREST = 0.1
 # 融券利率為千分之一
 BEARISH_RATE = 0.9
 BEARISH_FEE = 0.001
+BEARISH_INTEREST = 0.000
 
 '''TraderRecorder'''
 

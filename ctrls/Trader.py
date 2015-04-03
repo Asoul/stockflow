@@ -60,7 +60,7 @@ class Trader():
         elif trade['Type'] == 'Bearish Sell':
             token = "BeS"
 
-        stocks = self.stock + self.finance_stock + self.bearish_stock
+        stocks = self.stock + self.finance_stock - self.bearish_stock
         debts = self.finance_debt + self.bearish_debt
         asset = self.getAsset(trade["Price"])
         print ('%s %s %s %d at %.2f, Money: %d, Stock: %d, Debt: %d, Asset: %d, Rate: %.3f%%' % 
@@ -91,12 +91,16 @@ class Trader():
         total_stock = cost - fee - tax
 
         finance = self.finance_stock * price * 1000
-        finance_fee = max(STOCK_MIN_FEE, finance * STOCK_FEE)
+        finance_fee = int(max(STOCK_MIN_FEE, finance * STOCK_FEE))
         finance_tax = int(finance * STOCK_TAX)
         finance_interest = 0
         total_finance = finance - finance_fee - finance_tax - finance_interest - self.finance_debt
 
-        return self.money + total_stock + total_finance
+        bearish = self.bearish_stock * price * 1000
+        bearish_fee = int(max(STOCK_MIN_FEE, bearish * STOCK_FEE))
+        total_bearish = self.bearish_debt + self.bearish_promise - bearish - bearish_fee + self.bearish_interest
+
+        return self.money + total_stock + total_finance + total_bearish
 
     def diffDay(day1, day2):
         y1, m1, d1 = day1.split('/')
@@ -119,6 +123,7 @@ class Trader():
             self.asset_series.append(asset)
 
             self.finance_interest += int(self.finance_debt * FINANCE_INTEREST / 365)
+            self.bearish_interest += int((self.bearish_promise + self.bearish_debt) * BEARISH_INTEREST / 365)
             
             # 更新買賣序列
             if self.stock_series[-1] > 0:
@@ -314,7 +319,7 @@ class Trader():
 
         # Check Volume
         if order["Volume"] == 0:
-            volume = int(int(self.money / 100) / (BEARISH_RATE * price * 1000))
+            volume = int(int(self.money / 100) / (BEARISH_RATE * price * 10))
         else:
             volume = int(order["Volume"])
 
@@ -350,7 +355,7 @@ class Trader():
             volume = int(order["Volume"])
             # 只償還一部分的話，要剩下的還可以融多少
             remain_cost = int((self.bearish_stock - volume) * price)
-            remain_fee = int(remain_cost * STOCK_FEE)
+            remain_fee = int(max(STOCK_MIN_FEE, remain_cost * STOCK_FEE))
             remain_tax = int(remain_cost * STOCK_TAX)
             remain_bfee = int(remain_cost * BEARISH_FEE)
             remain_debt = int(remain_cost - remain_fee - remain_tax - remain_bfee)
