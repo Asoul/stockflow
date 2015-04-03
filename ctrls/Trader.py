@@ -72,17 +72,17 @@ class Trader():
         tax = int(cost * STOCK_TAX)
         total_stock = cost - fee - tax
 
-        finance = self.finance_stock * price * 1000
+        finance = int(self.finance_stock * price * 1000)
         finance_fee = int(max(STOCK_MIN_FEE, finance * STOCK_FEE))
         finance_tax = int(finance * STOCK_TAX)
         finance_interest = 0
-        total_finance = finance - finance_fee - finance_tax - finance_interest - self.finance_debt
+        total_finance = int(finance - finance_fee - finance_tax - finance_interest - self.finance_debt)
 
-        bearish = self.bearish_stock * price * 1000
+        bearish = int(self.bearish_stock * price * 1000)
         bearish_fee = int(max(STOCK_MIN_FEE, bearish * STOCK_FEE))
-        total_bearish = self.bearish_debt + self.bearish_promise - bearish - bearish_fee + self.bearish_interest
-
-        return self.money + total_stock + total_finance + total_bearish
+        total_bearish = int(self.bearish_debt + self.bearish_promise - bearish - bearish_fee + self.bearish_interest)
+        
+        return int(self.money + total_stock + total_finance + total_bearish)
 
     def updateAndReturn(self, action, price, volume, when):
 

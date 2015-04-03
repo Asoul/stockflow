@@ -16,7 +16,6 @@ class BenchModelRecorder():
         self.model_description = model_infos["Model Description"]
         self.number = number
         self.rois = []
-        self.total_roi = 1.0
         self.filename = join(BENCHMARK_MODEL_PATH, self.model_description + '.csv')
     
     def restart(self):
@@ -36,7 +35,9 @@ class BenchModelRecorder():
     def update(self, result):
         roi = float(result["Asset Series"][-1])/result["Asset Series"][0]
         self.rois.append(str(round((roi-1) * 100, 3)) + '%')
-        self.total_roi *= roi
+
+    def updateFinal(self, result):
+        self.total_roi = float(result["Asset Series"][-1])/result["Asset Series"][0]
 
     def record(self):
         f = open(self.filename, 'ab')
@@ -45,4 +46,3 @@ class BenchModelRecorder():
         cw.writerow([self.number] + self.rois + [str(round((self.total_roi-1)*100, 3)) + '%'])
 
         self.rois = []
-        self.total_roi = 1.0

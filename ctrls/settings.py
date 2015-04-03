@@ -62,7 +62,7 @@ MODEL_FIGURE_PATH = RESULT_PATH + '/tradefig-model'
 '''BenchMark'''
 
 # Benchmark 從民國 100 年開始測到 104 年
-BENCHMARK_YEAR_START = 100
+BENCHMARK_YEAR_START = 81
 BENCHMARK_YEAR_END = 104
 
 # Benchmark 測試結果輸出位置
