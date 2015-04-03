@@ -44,33 +44,40 @@ class Tester():
         else:
             return False
 
+    def getROI(self, result):
+        if len(result["Asset Series"]) > 0:
+            return str(round((float(result["Asset Series"][-1])/result["Asset Series"][0] - 1)*100, 3)) + '%'
+        else:
+            return "0.000 %"
+
     def run(self, mode = 'train', noLog = False, noRecord = False, dateFrom = None, dateTo = None, roiThr = -100, drawCandle = True):
         '''
             noLog 和 noRecord 只對 train 模式有用，其他模式一律預設不會輸出，
             drawCandle 只對非 train 模式有用，避免一次輸出太多圖檔，跑得很慢
         '''
+        # tmpFlag 會用 api 抓最新資料
+        if mode == 'tmpGood' or mode == 'tmpHold': master_tmp_flag = True
+        else: master_tmp_flag = False
         for number in self.numbers:
 
             reader = Reader(number)
             model = self.Model()
             trader = Trader(model.infos, number, noLog)
 
-            # tmpFlag 會用 api 抓最新資料
-            if mode == 'tmpGood' or mode == 'tmpHold': tmpFlag = True
-            else: tmpFlag = False
+            tmp_flag = master_tmp_flag
             
             while True:
                 row = reader.getInput()
                 if row == None:
-                    if tmpFlag:
+                    if tmp_flag:
                         row = self._getTmpData(number)
-                        tmpFlag = False
+                        tmp_flag = False
                     else: break
 
                 last_row = row
 
                 if (dateFrom or dateTo) and self._notInPeriod(row, dateFrom, dateTo):
-                    model.update(row, None)
+                    model.updateData(row)
                 else:
                     # 更新 Trader 資訊
                     trader.updateData(row)
@@ -102,17 +109,17 @@ class Tester():
             elif mode == 'tmpGood' or mode == 'tmrGood':
 
                 # Model 預測出要買，而且指定時間內累計 ROI 高於 ROI Threshold
-                if order["Act"] == 'Buy' and result["ROI"] > roiThr:
-                    print last_row[0], number, ' at ', float(last_row[6]), '該買囉, ROI 累計：', result["ROI"], '%'
+                if order["Type"] == 'Buy' and result["ROI"] > roiThr:
+                    print last_row[0], number, ' at ', float(last_row[6]), '該買囉, ROI 累計：', self.getROI(result)
                     
                     # 預設買前看一下 CandleStick 確定一下
                     if drawCandle: CandleDrawer().draw(number)
 
             elif mode == 'tmpHold' or mode == 'tmrHold':
-                if order["Act"] == 'Sell':
-                    print last_row[0], number, ' at ', float(last_row[6]), '該賣囉, ROI 累計：', result["ROI"], '%'
-                elif order["Act"] == 'Nothing':
-                    print last_row[0], number, ' at ', float(last_row[6]), '不要動, ROI 累計：', result["ROI"], '%'
+                if order["Type"] == 'Sell':
+                    print last_row[0], number, ' at ', float(last_row[6]), '該賣囉, ROI 累計：', self.getROI(result)
+                elif order["Type"] == 'Nothing':
+                    print last_row[0], number, ' at ', float(last_row[6]), '不要動, ROI 累計：', self.getROI(result)
 
                 # 做操作前看一下 CandleStick 確定一下
                 if drawCandle: CandleDrawer().draw(number)

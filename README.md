@@ -230,12 +230,10 @@ traderRecorder.record(trader.analysis())# TraderRecorder 紀錄買賣資料
 2. 更新風險公式
 3. 為了方便計算，利息依照融資歸還比例償還總累計利息
 4. 不考慮資產變為負的後續處理
-5. 融券不計利息，太微薄了
 
 ## TODO:
 
 1. doc 獨立開來成gh-page，要改明白一點
-2. 增加融資finance、融券bearish
 3. 東西命名改成 Python 一點
 4. 有時候漲停跌停，有錢可能買不到賣不出，是個邏輯 bug 點
 5. 融資融券是不是要有斷頭

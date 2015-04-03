@@ -9,13 +9,16 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 from os.path import isfile, join, isdir
 from scipy.stats.mstats import gmean
+from scipy.stats import norm
 
 HEADERS = [ 
     "Description",
     "Model Version",
     "ROI",
     "Stock-Hold Day",
-    "Weekly Risk",
+    "Yearly Risk Mean",
+    "Yearly Risk Std",
+    "Positive Rate",
     "Trade Count",
     "Test Time"
 ]
@@ -26,7 +29,7 @@ class BenchYearRecorder():
         self.model_infos = model_infos
         self.rois = []
         self.hold_stock = []
-        self.week_risks = []
+        self.risks = []
         self.trade_count = [] 
         self.year = year
 
@@ -37,10 +40,20 @@ class BenchYearRecorder():
             str(t.hour).zfill(2)+':'+str(t.minute).zfill(2)+':'+str(t.second).zfill(2))
 
     def update(self, result):
-        self.rois.append(result["ROI"]/100+1)
-        self.hold_stock.append(result["Stock-Hold Day"])
-        self.week_risks.append(result["Weekly Risk"])
-        self.trade_count.append(result["Trade Count"])
+
+        self.rois.append(float(result["Asset Series"][-1])/result["Asset Series"][0])
+        if sum(result["Buyed Stock Series"]) > 0:
+            self.hold_stock.append(float(sum(result["Stock Series"]))/sum(result["Buyed Stock Series"]))
+        else:
+            self.hold_stock.append(0)
+        for i in range(1, len(result["Asset Series"])):
+            if float(result["Asset Series"][i])/result["Asset Series"][i-1] <= 0:
+                print "Q_Q", float(result["Asset Series"][i])/result["Asset Series"][i-1]
+            self.risks.append(np.log(float(result["Asset Series"][i])/result["Asset Series"][i-1]))
+        self.trade_count.append(result["Trade Series"].count(1) + result["Trade Series"].count(-1))
+
+    def formatRoundPercent(self, num):
+        return str(round(num * 100, 3))+'%'
 
     def record(self):
         
@@ -52,13 +65,30 @@ class BenchYearRecorder():
 
         if newFileFlag: cw.writerow(HEADERS)
 
+        if len(self.rois) > 0:
+            roi = np.mean(self.rois) - 1
+            risk_avg = np.mean(self.risks)
+            risk_std = np.std(self.risks)
+            stock_hold_day = np.mean(self.hold_stock)
+            positive_rate = 1.0 - norm.cdf(-risk_avg/risk_std)
+            trade_count = np.mean(self.trade_count)
+        else:
+            roi = 0
+            risk_avg = 0
+            risk_std = 0
+            stock_hold_day = 0
+            positive_rate = 0
+            trade_count = 0
+
         cw.writerow([
             self.model_infos["Model Description"],
             self.model_infos["Model Version"],
-            str(round((gmean(self.rois)-1)*100, 3))+'%' if len(self.rois) > 0 else '0.0%',
-            round(np.mean(self.hold_stock), 3) if len(self.hold_stock) > 0 else 0.0,
-            round(np.mean(self.week_risks), 3) if len(self.week_risks) > 0 else 0.0,
-            round(np.mean(self.trade_count), 3) if len(self.trade_count) > 0 else 0.0,
+            self.formatRoundPercent(roi),
+            round(stock_hold_day, 3),
+            self.formatRoundPercent(risk_avg),
+            self.formatRoundPercent(risk_std),
+            self.formatRoundPercent(positive_rate),
+            round(trade_count, 3),
             self._getFromattedTime()
         ])
         

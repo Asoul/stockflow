@@ -1,6 +1,8 @@
 #!/bin/python
 # -*- coding: utf-8 -*-
 
+'''路徑設定'''
+
 # 資料來源
 TSEC_DATA_PATH = 'tsec/data'
 
@@ -8,24 +10,44 @@ TSEC_DATA_PATH = 'tsec/data'
 RESULT_PATH = 'results'
 
 # 繪圖設定
+# 圖片寬度
 FIGURE_WIDTH = 16
+# 圖片高度
 FIGURE_HEIGHT = 9
+# 圖片畫質
 FIGURE_DPI = 300
 
 '''Trader'''
 
-# 交易費率
-STOCK_FEE = 0.001425
-STOCK_TAX = 0.003
-STOCK_MIN_FEE = 20
+# 起始金額
 TRADER_INIT_MONEY = 100000000
-# 融資年利率
+
+# 交易手續費
+STOCK_FEE = 0.001425
+# 最低手續費
+STOCK_MIN_FEE = 20
+# 證交稅
+STOCK_TAX = 0.003
+
+# 融資成數
 FINANCE_RATE = 0.6
+# 融資年利率 10%
 FINANCE_INTEREST = 0.1
-# 融券利率為千分之一
+# 融券成數
 BEARISH_RATE = 0.9
+# 融券借券費
 BEARISH_FEE = 0.001
+# 融券年利率
 BEARISH_INTEREST = 0.000
+
+ABBR = {
+    "Buy": "Buy",
+    "Sell": "Sel",
+    "Finance Buy": "FiB",
+    "Finance Sell": "FiS",
+    "Bearish Buy": "BiB",
+    "Bearish Sell": "BiS"
+}
 
 '''TraderRecorder'''
 

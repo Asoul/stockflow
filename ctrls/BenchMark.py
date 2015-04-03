@@ -22,12 +22,19 @@ class BenchMark():
         self.Model = Model
         self.years = range(BENCHMARK_YEAR_START, BENCHMARK_YEAR_END + 1)
 
+    def getROI(self, result):
+        if len(result["Asset Series"]) > 0:
+            return str(round((float(result["Asset Series"][-1])/result["Asset Series"][0] - 1)*100, 3)) + '%'
+        else:
+            return "0.000 %"
+
     def run(self, noLog = False):
         '''
             依照年份測試指定清單的資料。
         '''
         # Initialize BenchYearRecorder and BenchModelRecorder
         benchYearRecorders = dict()
+        BenchModelRecorder(self.Model().infos, '0000').restart()
         for year in self.years:
             benchYearRecorders[year] = BenchYearRecorder(self.Model().infos, year)
 
@@ -41,7 +48,7 @@ class BenchMark():
 
                 reader = Reader(number)
                 model = self.Model()
-                trader = Trader(model.infos, number)
+                trader = Trader(model.infos, number, True)
 
                 while True:
 
@@ -52,26 +59,32 @@ class BenchMark():
 
                     if data_year > year: break
                     elif data_year == year:
-                        
-                        prediction = model.predict('start', float(row[3]))
-                        trade = trader.do(row, prediction, 'start')
+                        # 更新 Trader 資訊
+                        trader.updateData(row)
 
-                        # 盤中 update
-                        model.update(row, trade, 'start')
+                        # 開盤的買：用開盤價交易
+                        order = model.predict('start', float(row[3]))
+                        trade = trader.place('start', order)
+                        model.updateTrade(trade)
 
-                        # 快收盤的買
-                        prediction = model.predict('end', float(row[6]))
-                        trade = trader.do(row, prediction, 'end')
+                        # 開盤後，盤中掛單
+                        order = model.predict('mid', float(row[3]))
+                        trade = trader.place('mid', order)
+                        model.updateTrade(trade)
 
-                        # 盤末 update
-                        model.update(row, trade, 'end')    
+                        # 盤末的更新
+                        model.updateData(row)
+
+                        # 收盤的買：用收盤價交易
+                        order = model.predict('end', float(row[6]))
+                        trade = trader.place('end', order)
+                        model.updateTrade(trade)
                     else:
-                        # 只要盤末 update 就好
-                        model.update(row, None, 'end')                    
+                        model.updateData(row)
 
-                result = trader.analysis()
+                result = trader.getResult()
 
-                if not noLog: sys.stdout.write('\t%4.3f %%\n' % result["ROI"])
+                if not noLog: sys.stdout.write('\t%s\n' % self.getROI(result))
 
                 benchYearRecorders[year].update(result)
                 benchModelRecorder.update(result)

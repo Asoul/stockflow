@@ -12,22 +12,22 @@ class Trader():
     def __init__(self, model_infos, stock_number, noLog):
 
         # 基本資料
-        self.model_infos = model_infos
-        self.stock_number = stock_number
+        self.model_infos = model_infos # Model 資訊
+        self.stock_number = stock_number # 股票代號
 
         # 狀態設置
         self.noLog = noLog
 
         # 錢、股票、未還融資券金額
-        self.money = TRADER_INIT_MONEY
-        self.stock = 0
-        self.finance_debt = 0
-        self.finance_stock = 0
-        self.finance_interest = 0
-        self.bearish_promise = 0
-        self.bearish_debt = 0
-        self.bearish_stock = 0
-        self.bearish_interest = 0
+        self.money = TRADER_INIT_MONEY # 帳戶餘額
+        self.stock = 0 # 現股
+        self.finance_debt = 0 # 未還融資金
+        self.finance_stock = 0 # 未還融資股票
+        self.finance_interest = 0 # 融資利息
+        self.bearish_promise = 0 # 未還融券保證金
+        self.bearish_debt = 0 # 未還融券擔保品
+        self.bearish_stock = 0 # 未還融券股票
+        self.bearish_interest = 0 # 融券利息
 
         # 時間序列
         # 交易日期、成交股數、成交金額、開盤價、最高價、最低價、收盤價、漲跌價差、成交筆數
@@ -44,45 +44,27 @@ class Trader():
 
         # 計算股票平均持有天數
         self.stock_series = [] #股票持有的股票數序列
-        self.buyed_stock_series = [] #曾持有的股票數序列
+        self.buyed_stock_series = [] #曾購賣的股票數序列
 
     def printLog(self, trade, when):
-        if trade['Type'] == 'Buy':
-            token = 'Buy'
-        elif trade['Type'] == 'Sell':
-            token = "Sel"
-        elif trade['Type'] == 'Finance Buy':
-            token = "FiB"
-        elif trade['Type'] == 'Finance Sell':
-            token = "FiS"
-        elif trade['Type'] == 'Bearish Buy':
-            token = "BeB"
-        elif trade['Type'] == 'Bearish Sell':
-            token = "BeS"
 
         stocks = self.stock + self.finance_stock - self.bearish_stock
-        debts = self.finance_debt + self.bearish_debt
+        debts = self.finance_debt - self.bearish_debt
         asset = self.getAsset(trade["Price"])
+
         print ('%s %s %s %d at %.2f, Money: %d, Stock: %d, Debt: %d, Asset: %d, Rate: %.3f%%' % 
-            (self.date_series[-1], when[:3], token, trade['Volume'], trade['Price'], 
+            (self.date_series[-1], when[:3], ABBR[trade["Type"]], trade['Volume'], trade['Price'], 
             self.money, stocks, debts, asset, float(asset)/TRADER_INIT_MONEY*100)
         )
 
     def autoCorrectPrice(self, price):
         '''依照證券交易所的級距更改成實際價格'''
-        if price >= 1000:
-            price = math.floor(price / 5) * 5
-        elif price >= 500:
-            price = math.floor(price)
-        elif price >= 100:
-            price = math.floor(price * 2)/2
-        elif price >= 50:
-            price = math.floor(price * 10)/10
-        elif price >= 10:
-            price = math.floor(price * 20)/20
-        else:
-            price = math.floor(price * 100)/100
-        return price
+        if price >= 1000: return math.floor(price / 5) * 5
+        elif price >= 500: return math.floor(price)
+        elif price >= 100: return math.floor(price * 2)/2
+        elif price >= 50: return math.floor(price * 10)/10
+        elif price >= 10: return math.floor(price * 20)/20
+        else: return math.floor(price * 100)/100
 
     def getAsset(self, price):
         cost = int(price * self.stock * 1000)
@@ -102,15 +84,7 @@ class Trader():
 
         return self.money + total_stock + total_finance + total_bearish
 
-    def diffDay(day1, day2):
-        y1, m1, d1 = day1.split('/')
-        y2, m2, d2 = day2.split('/')
-        return (date(int(y1)+1911, int(m1), int(d1)) - date(int(y2)+1911, int(m2), int(d2))).days
-
     def updateAndReturn(self, action, price, volume, when):
-        
-        # bearish = self.bearish_stock[-1] * self.close_series[-1] * 1000
-        # bearish_fee = max(STOCK_MIN_FEE, bearish * STOCK_FEE)
 
         if action in ['Buy', "Finance Buy", "Bearish Buy"]:
             self.buyed_stock_series[-1] += volume
@@ -177,7 +151,13 @@ class Trader():
         # 盤中沒有指定價位
         elif when == 'mid' and order["Price"] == 0:
             return True
-
+        # 沒有量要賣
+        elif order["Type"] == "Sell" and self.stock <= 0:
+            return True
+        elif order["Type"] == "Finance Sell" and self.finance_stock <= 0:
+            return True
+        elif order["Type"] == "Bearish Sell" and self.bearish_stock <= 0:
+            return True
         return False
 
     def getTradePrice(self, when, act, price):
