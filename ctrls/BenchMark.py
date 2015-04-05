@@ -39,7 +39,7 @@ class BenchMark():
         
         for year in self.years:
             benchYearRecorders[year] = BenchYearRecorder(self.Model().infos, year)
-            '''記錄很多 series 在相同年份的不同表現'''
+        benchYearRecorders['all'] = BenchYearRecorder(self.Model().infos, 'all')
 
         for number in self.numbers:
 
@@ -102,5 +102,8 @@ class BenchMark():
             benchModelRecorder.updateFinal(result)
             benchModelRecorder.record()
 
+            benchYearRecorders['all'].update(result, len(result["Asset Series"]))
+
         for year in self.years:
             benchYearRecorders[year].record()
+        benchYearRecorders['all'].record()
