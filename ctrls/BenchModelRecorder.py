@@ -32,8 +32,8 @@ class BenchModelRecorder():
         header.append('total')
         return header
 
-    def update(self, result):
-        roi = float(result["Asset Series"][-1])/result["Asset Series"][0]
+    def update(self, result, year_day):
+        roi = float(result["Asset Series"][-1])/result["Asset Series"][-year_day]
         self.rois.append(str(round((roi-1) * 100, 3)) + '%')
 
     def updateFinal(self, result):

@@ -39,18 +39,22 @@ class BenchYearRecorder():
         return (str(t.year)+'/'+str(t.month).zfill(2)+'/'+'/'+str(t.day).zfill(2)+' '+
             str(t.hour).zfill(2)+':'+str(t.minute).zfill(2)+':'+str(t.second).zfill(2))
 
-    def update(self, result):
-
-        self.rois.append(float(result["Asset Series"][-1])/result["Asset Series"][0])
-        if sum(result["Buyed Stock Series"]) > 0:
-            self.hold_stock.append(float(sum(result["Stock Series"]))/sum(result["Buyed Stock Series"]))
-        else:
-            self.hold_stock.append(0)
-        for i in range(1, len(result["Asset Series"])):
+    def update(self, result, year_day):
+        self.rois.append(float(result["Asset Series"][-1])/result["Asset Series"][-year_day])
+        for i in range(-year_day + 1, 0):
             if float(result["Asset Series"][i])/result["Asset Series"][i-1] <= 0:
                 print "Q_Q", float(result["Asset Series"][i])/result["Asset Series"][i-1]
+                continue
             self.risks.append(np.log(float(result["Asset Series"][i])/result["Asset Series"][i-1]))
-        self.trade_count.append(result["Trade Series"].count(1) + result["Trade Series"].count(-1))
+        
+        if sum(result["Buyed Stock Series"][-year_day:]) > 0:
+            self.hold_stock.append(float(sum(result["Stock Series"][-year_day:])) / \
+                                         sum(result["Buyed Stock Series"][-year_day:]))
+        else:
+            self.hold_stock.append(0)
+        
+        self.trade_count.append(result["Trade Series"][-year_day:].count(1) + \
+                                result["Trade Series"][-year_day:].count(-1))
 
     def formatRoundPercent(self, num):
         return str(round(num * 100, 3))+'%'
