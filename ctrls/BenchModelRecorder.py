@@ -42,7 +42,8 @@ class BenchModelRecorder():
     def record(self):
         f = open(self.filename, 'ab')
         cw = csv.writer(f, delimiter = ',')
-
+        for i in range(BENCHMARK_YEAR_END - BENCHMARK_YEAR_START - len(self.rois) + 1):
+            self.rois.insert(0, '0.0%')
         cw.writerow([self.number] + self.rois + [str(round((self.total_roi-1)*100, 3)) + '%'])
 
         self.rois = []
